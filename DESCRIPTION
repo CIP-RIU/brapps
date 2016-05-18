@@ -1,0 +1,17 @@
+Package: brapps
+Title: Functions for Demoing Breeding API
+Version: 0.0.0.9000
+Authors@R: person("Reinhard", "Simon", email = "R.SIMON@CGIAR.ORG",
+  role = c("aut", "cre"))
+Description: Functions for Demoing Breeding API.
+Depends:
+    R (>= 3.3.0)
+Imports:
+    brapi, agricolae, d3heatmap, httr, magrittr, qtl, qtlcharts, shiny,
+    DT, fbmaterials, htmlTable, leaflet, miniUI, randomForest, rmarkdown,
+    stringr, withr
+Remotes: c5sire/brapi, c5sire/fbmaterials
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 5.0.1
