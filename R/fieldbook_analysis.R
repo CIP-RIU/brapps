@@ -15,6 +15,12 @@ fieldbook_analysis <- function(input, output, session){
 
   brapi_host = "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu"
 
+  volumes <- getVolumes(c("(E:)", "Page File (F:)"))
+
+  shinyFileChoose(input, 'fileFB', roots=volumes, session=session,
+                  filetypes=c( 'xlsx', 'csv'))
+
+
   get_plain_host <- function(){
     host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]
     if(host == "") host = brapi_host
@@ -30,14 +36,25 @@ fieldbook_analysis <- function(input, output, session){
 
   dataInput <- shiny::reactive({
     fbId = input$fbaInput
-    # DF = brapi::study_table(fbId)
-    # list(fbId, DF)
     fbId
   })
 
   fbInput <- shiny::reactive({
-    fbId = dataInput()
-    brapi::study_table(fbId)
+    req(input$fileFB)
+    # fbId = dataInput()
+    # brapi::study_table(fbId)
+
+    mf = parseFilePaths(volumes, input$fileFB)$datapath
+    mf = as.character(mf)
+    if(stringr::str_detect(mf, ".xlsx")){
+      fb = readxl::read_excel(mf, "Fieldbook")
+    } else {
+      fb = read.csv(mf)
+    }
+    xi = which(names(fb) == "TRT1")
+    names(fb)[xi] = "germplasmName"
+    #print(mf)
+    fb
   })
 
 
@@ -122,40 +139,18 @@ output$vcor_output = qtlcharts::iplotCorr_render({
 })
 
 
-# TODO BUG?: somehow this section needs to go last!
-# output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
-#    DF = fbInput()
-#    #if (!is.null(DF)) {
-#      ci = input$hotFieldbook_select$select$c
-#     #print(ci)
-#     trt = names(DF)[ncol(DF)]
-#     if (!is.null(ci)) trt = names(DF)[ci]
-#     #print(trt)
-#     fm <- fbmaterials::fb_to_map(DF, gt = "germplasmName", #input[["def_genotype"]],
-#                                  variable = trt,
-#                                  rep = "REP", #input[["def_rep"]],
-#                                  # blk = input[["def_block"]],
-#                                  plt = "PLOT"  #input[["def_plot"]]
-#     )
-#     amap = fm[["map"]]
-#     anot = fm[["notes"]]
-#     d3heatmap(x = amap,
-#              cellnote = anot,
-#              colors = "Blues",
-#              Rowv = FALSE, Colv = FALSE,
-#              dendrogram = "none")
-# })
 
 output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
   DF = fbInput()
-  #if (!is.null(DF)) {
-  #ci = input$hotFieldbook_select$select$c
+  #print(str(DF))
   ci = input$hotFieldbook_columns_selected
   #print(ci)
   trt = names(DF)[ncol(DF)]
   if (!is.null(ci)) trt = names(DF)[ci]
-  #print(trt)
-  fm <- fbmaterials::fb_to_map(DF, gt = "germplasmName", #input[["def_genotype"]],
+
+  fm <- fbmaterials::fb_to_map(DF,
+                               gt = "germplasmName", #input[["def_genotype"]],
+                               #gt = "TRT1",
                                variable = trt,
                                rep = "REP", #input[["def_rep"]],
                                # blk = input[["def_block"]],

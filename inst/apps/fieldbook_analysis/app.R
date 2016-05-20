@@ -5,6 +5,7 @@ library(shinydashboard)
 library(d3heatmap)
 #library(rhandsontable)
 library(shinyURL)
+library(shinyFiles)
 
 ui <- dashboardPage(skin = "yellow",
                     dashboardHeader(title = "HIDAP"),
@@ -14,7 +15,10 @@ ui <- dashboardPage(skin = "yellow",
                           menuSubItem("Analysis",
                                  tabName = "phn_dashboard", icon = icon("map-o"))
                                  ,
-                                 numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999)
+                                 #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999),
+                                  shinyFiles::shinyFilesButton('fileFB', 'File select',
+                                                       'Please select a fieldbook file', FALSE
+                                  )
                           ,
                           HTML("<div style='display:none'>"),
                           shinyURL.ui(label = "",width=0, copyURL = F, tinyURL = F),
@@ -86,6 +90,7 @@ ui <- dashboardPage(skin = "yellow",
 ############################################################
 
 sv <- function(input, output, session) ({
+
   shinyURL.server()
   brapps::fieldbook_analysis(input, output, session)
 })
