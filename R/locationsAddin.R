@@ -61,7 +61,9 @@ locationsAddin <- function(){
 
     if(file.exists("brapi_session.rda")){
       load("brapi_session.rda")
-    }
+    } else (
+      stopApp("Please connect to a database.")
+    )
 
     locations(input, output, session)
 

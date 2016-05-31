@@ -11,6 +11,8 @@
 #' @export
 locations <- function(input, output, session){
 
+  if(is.null(brapi)) return()
+
   get_plain_host <- function(){
     # host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]
     # if(stringr::str_detect(host, "@")){
@@ -155,16 +157,34 @@ locations <- function(input, output, session){
   })
 
 
+  get_geo_locs <- function(){
+    locs = brapi::locations_list()
+    #filter out those without georefs
+    locs = locs[!is.na(locs$latitude),]
+    if(nrow(locs) == 0) return(NULL)
+    locs
+  }
+
+  get_geo_mark <- function(){
+    click<-input$map_marker_click
+    if(is.null(click))
+      return()
+    locs = get_geo_locs()
+    locs[locs$latitude == click$lat & locs$longitude == click$lng, ]
+  }
+
+
   output$site_fieldtrials <- renderUI({
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
     stds = brapi::studies()
-    #print(studies)
-    locs = mrks()
+    locs = get_geo_mark()
     #print(locs)
-    out = "No trials found for this location!"
+    if(is.null(locs)) return(NULL)
+    #print(locs)
+    #out = "No trials found for this location!"
 
     # 1st try to find via id if not use unique name
-    sid = stds[stds$locationDbId == locs$locationDbId, "studyDbID"]
+    sid = stds[stds$locationDbId == locs$locationDbId, "studyDbId"]
     if (length(sid) == 0) {
       # REDO! Use all locations; group by country (rev. order by year; highlight the marked one!)
       sid = stds[stringr::str_detect(toupper(stds$name), locs$Uniquename), "studyDbId"]
@@ -174,10 +194,10 @@ locations <- function(input, output, session){
     setProgress(5)
 
     if(length(sid) != 0){
-      host = get_plain_host()
+      host = brapi$db  #get_plain_host()
       path = "/breeders/trial/"
 
-      out = paste0("<br><a href='http://",host, path, sid, "' target='_blank'>", stds[stds$studyDbId==sid, "name"], "</a>") %>%
+      out = paste0("<br><a href='http://",host, path, sid, "' target='_blank'>", stds[stds$studyDbId %in% sid, "name"], "</a>") %>%
         paste(collapse = ", ")
     }
 
@@ -189,16 +209,17 @@ locations <- function(input, output, session){
 
 
   output$site_genotypes <- renderUI({
+
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
     stds = brapi::studies()
-    #print(studies)
-    locs = mrks()
+    locs = get_geo_mark()
+    if(is.null(locs)) return(NULL)
     #print(locs)
-    out = "No trials found for this location!"
+    #out = "No trials found for this location!"
     setProgress(4)
 
     # 1st try to find via id if not use unique name
-    sid = stds[stds$locationDbId == locs$locationDbId, "studyDbID"]
+    sid = stds[stds$locationDbId == locs$locationDbId, "studyDbId"]
     if (length(sid) == 0) {
       sid = stds[stringr::str_detect(toupper(stds$name), locs$Uniquename), "studyDbId"]
 
@@ -207,13 +228,14 @@ locations <- function(input, output, session){
 
       #TODO implement BRAPI call to study table!
       study = brapi::study_table(sid[1])
+      if(is.null(study)) return(NULL)
       topgp = brapi::get_top_germplasm(study)
 
       gid = topgp$germplasmDbId
       gnm = topgp$germplasmName
       hid = topgp$`Harvest index computing percent`
 
-      host = get_plain_host()
+      host = brapi$db
 
       path = "/stock/"
 
