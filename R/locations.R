@@ -189,7 +189,7 @@ locations <- function(input, output, session){
     #fn <- withr::with_dir(report_dir, {
     fn  <- rmarkdown::render(report,
                             #output_format = "all",
-                            output_dir = file.path("www", "reports"), #rep_dir,
+                            output_dir = file.path(wd, "www", "reports"), #rep_dir,
                             params = list(
                               locs = locs))
     #})
