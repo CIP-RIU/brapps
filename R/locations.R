@@ -186,8 +186,8 @@ locations <- function(input, output, session){
 
     setProgress(5)
 
-    withr::with_dir(report_dir, {
-    fn <- rmarkdown::render(report,
+    fn <- withr::with_dir(report_dir, {
+      rmarkdown::render(report,
                             #output_format = "all",
                             output_dir = file.path(wd, "www"), #rep_dir,
                             params = list(
@@ -202,7 +202,7 @@ locations <- function(input, output, session){
 
     }) # progress
 
-    html <- includeHTML(fn)
+    html <- includeHTML(report)
     HTML(html)
   })
 
