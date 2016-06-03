@@ -177,9 +177,9 @@ locations <- function(input, output, session){
     #report = file.path("inst", "rmd", "report_location.Rmd")
     report = file.path(system.file("rmd", package = "brapps"), "report_location.Rmd")
     rep_dir <- "www/reports/"
-    if(!file.exists(rep_dir)){
-      rep_dir = tempdir()
-    }
+    # if(!file.exists(rep_dir)){
+    #   rep_dir = tempdir()
+    # }
 
     setProgress(5)
 
@@ -190,7 +190,8 @@ locations <- function(input, output, session){
                               locs = locs))
     setProgress(8)
 
-    html <- readLines(file.path(rep_dir, "report_location.html"))
+    #html <- readLines(file.path(rep_dir, "report_location.html"))
+    html <- readLines(fn)
     }) # progress
 
     HTML(html)

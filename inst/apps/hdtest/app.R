@@ -72,10 +72,12 @@ ui <- dashboardPage(skin = "yellow",
                                                          htmlOutput("siteInfo")
                                                 ), tabPanel("Fieldtrials",
                                                             htmlOutput("site_fieldtrials")
-                                                ),
-                                                tabPanel("Genotypes",
-                                                         htmlOutput("site_genotypes")
                                                 )
+                                                # TODOD
+                                                # ,
+                                                # tabPanel("Genotypes",
+                                                #          htmlOutput("site_genotypes")
+                                                # )
 
                                          )
                                   )
@@ -378,6 +380,12 @@ sv <- function(input, output, session) ({
   fieldbook_analysis(input, output, session)
 
   brapps::locations(input, output, session)
+
+  # observe({
+  #   # Re-execute this reactive expression after 1000 milliseconds
+  #   invalidateLater(1000, session)
+  #   unlink(get_base_data(atype = "location"), recursive = TRUE)
+  # })
 
 })
 
