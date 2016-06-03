@@ -13,12 +13,12 @@ locationsAddin <- function(){
            miniUI::miniContentPanel(
           #locationsUI("locations")
           p(class = 'text-center', shiny::downloadButton('locsDL', 'Download Filtered Data')),
-          DT::dataTableOutput("table")
+          DT::dataTableOutput("tableLocs")
         )
       ),
       miniUI::miniTabPanel("Map", icon = icon("map-o"),
                            miniUI::miniContentPanel(padding = 0,
-                                    leaflet::leafletOutput("map", height = "100%")
+                                    leaflet::leafletOutput("mapLocs", height = "100%")
                    )
       ),
       miniUI::miniTabPanel("Histogram", icon = icon("bar-chart"),
