@@ -181,20 +181,24 @@ locations <- function(input, output, session){
     # if(!file.exists(rep_dir)){
     #   rep_dir = tempdir()
     # }
+    report_dir = system.file("apps/hdtest/reports", package = "brapps")
+    wd = getwd()
 
     setProgress(5)
 
+    withr::with_dir(report_dir, {
     fn <- rmarkdown::render(report,
                             #output_format = "all",
-                            output_dir = file.path(getwd(), "www", "reports"), #rep_dir,
+                            output_dir = file.path(wd, "www"), #rep_dir,
                             params = list(
                               locs = locs))
+    })
     setProgress(8)
 
     #html <- readLines(file.path(rep_dir, "report_location.html"))
     report_html = stringr::str_replace(rep_name, ".Rmd", ".html")
     #output$rep_loc <- renderUI("")
-    report = file.path(getwd(), "www", "report ",report_html)
+    report = file.path(wd, "www", report_html)
 
     }) # progress
 
