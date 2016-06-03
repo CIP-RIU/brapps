@@ -186,13 +186,13 @@ locations <- function(input, output, session){
 
     setProgress(5)
 
-    #fn <- withr::with_dir(report_dir, {
-    fn  <- rmarkdown::render(report,
+    fn <- withr::with_dir(report_dir, {
+     rmarkdown::render(report,
                             #output_format = "all",
                             output_dir = file.path("www", "reports"), #rep_dir,
                             params = list(
                               locs = locs))
-    #})
+    })
     setProgress(8)
 
     #html <- readLines(file.path(rep_dir, "report_location.html"))
