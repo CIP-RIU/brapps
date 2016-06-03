@@ -204,7 +204,7 @@ locations <- function(input, output, session){
     }) # progress
 
     html <- includeHTML(fn)
-    HTML(fn)
+    HTML(fn, "<br/>", paste(list.files("www/reports"), "<br/>"))
   })
 
 
