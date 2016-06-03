@@ -266,6 +266,7 @@ locations <- function(input, output, session){
       if(!stringr::str_detect(host, "http")){
         host = paste0("http://", host)
       }
+      stds = get_all_studies()
 
       out = paste0("<br><a href='",host, path, sid, "' target='_blank'>", stds[stds$studyDbId %in% sid, "name"], "</a>") %>%
         paste(collapse = ", ")
