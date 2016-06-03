@@ -189,7 +189,7 @@ locations <- function(input, output, session){
     #fn <- withr::with_dir(report_dir, {
     fn  <- rmarkdown::render(report,
                             #output_format = "all",
-                            output_dir = file.path(wd, "www", "reports"), #rep_dir,
+                            output_dir = file.path("www", "reports"), #rep_dir,
                             params = list(
                               locs = locs))
     #})
@@ -199,11 +199,11 @@ locations <- function(input, output, session){
     report_html = stringr::str_replace(rep_name, ".Rmd", ".html")
     #output$rep_loc <- renderUI("")
     report = file.path("www",'reports', report_html)
-    print(fn)
-    print(report)
+    #print(fn)
+    #print(report)
     }) # progress
 
-    html <- includeHTML(report)
+    html <- includeHTML(fn)
     HTML(html)
   })
 
