@@ -55,7 +55,8 @@ ui <- dashboardPage(skin = "yellow",
                                    tabBox(width = NULL, id = "tabLocation",
                                           tabPanel("Map",
                                                    leafletOutput("mapLocs")
-                                          ),
+                                          )
+                                          ,
                                           tabPanel("Report",
                                                    htmlOutput("rep_loc")
                                                    #HTML("<h1>Under development!</h1>")

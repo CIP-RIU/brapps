@@ -198,7 +198,7 @@ locations <- function(input, output, session){
     #html <- readLines(file.path(rep_dir, "report_location.html"))
     report_html = stringr::str_replace(rep_name, ".Rmd", ".html")
     #output$rep_loc <- renderUI("")
-    report = file.path(wd, "www",'reports', report_html)
+    report = file.path("www",'reports', report_html)
     print(fn)
     print(report)
     }) # progress

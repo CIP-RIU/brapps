@@ -228,6 +228,9 @@ output$fbRep <- shiny::renderUI({
                    incProgress(3/3)
                  })
     #output$fb_report <- renderUI(HTML(html))
+    print(report_dir)
+    print(wd)
+    print(report)
     html <- readLines(report)
     shiny::HTML(html)
 
