@@ -198,7 +198,7 @@ locations <- function(input, output, session){
 
     }) # progress
 
-    html <- includeHTML(fn)
+    html <- includeHTML(report)
     HTML(html)
   })
 
