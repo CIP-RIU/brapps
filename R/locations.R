@@ -262,7 +262,7 @@ locations <- function(input, output, session){
     }
     dn = dirname(fp)
     #print(dn)
-    if(!dir.exists(dn)) dir.create(dn, rec=T)
+    if(!dir.exists(dn)) dir.create(dn, recursive = TRUE)
     fp
   }
 
@@ -276,7 +276,7 @@ locations <- function(input, output, session){
       }
     })
     if(is.null(stdy)){
-      if(can_internet()){
+      if(can_internet() & !is.null(brapi)){
         stdy = brapi::study_table(id)
         saveRDS(stdy, fp)
       }
@@ -320,13 +320,13 @@ locations <- function(input, output, session){
       txt = paste0("No internet connected!<br/>")
       out = stds$name %>% paste(collapse = ", ")
 
-      if(can_internet() ){
+      if(can_internet() & !is.null(brapi)){
         txt = ""
         #if(is.null(brapi)) brapi_con()
         host = brapi$db  #get_plain_host()
 
         path = "/breeders/trial/"
-        if(!stringr::str_detect(host, "http")){
+        if(!stringr::str_detect(host, "@")){
           host = paste0("https://", host)
         }
         #print(sid)
@@ -348,6 +348,7 @@ locations <- function(input, output, session){
 
   output$site_genotypes <- renderUI({
     out = msg_no_loc
+
     #if(!can_internet()) return("No internet connected!")
     #if(!is.null(get_geo_mark())){
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
@@ -371,21 +372,30 @@ locations <- function(input, output, session){
       #print(year)
       fb = NULL
       fb = get_study(year, sid)
-      #print(head(fb))
+      print(sid)
 
 
-      if(is.null(fb)) return("Could not get data!")
-      topgp = brapi::get_top_germplasm(fb)
-      # print(year)
-      # print(sid)
-      # print(topgp)
+      res = NULL
 
+      if(is.null(fb)) res = "The most recently added trial for this site seems to have no data!"
+
+      if(is.null(res)){
+        topgp = brapi::get_top_germplasm(fb)
+        print(topgp)
+        if(is.null(topgp))
+          res = "Cannot find this trait in the most recently added trial."
+
+      }
+
+
+      if(is.null(res)){
       gid = topgp$germplasmDbId
       gnm = topgp$germplasmName
       hid = topgp$`Harvest index computing percent`
-      if(can_internet()){
+      txt = ""
+      if(can_internet() & !is.null(brapi)){
         host = brapi$db
-        if(!stringr::str_detect(host, "http")){
+        if(!stringr::str_detect(host, "@")){
           host = paste0("https://", host)
         }
 
@@ -405,9 +415,10 @@ locations <- function(input, output, session){
       txt = paste0(txt, "Top genotypes for trait (", "Harvest index" ,") from most recent (", year
                    ,") fieldbook: ", stds$name,
                    " for location: ",get_geo_mark()$name,":</br>") # TODO make trait choosable
-      out = paste(txt, out)
-      #
+      res = paste(txt, out)
+      }
 
+      out = res
     setProgress(8)
       }
 
