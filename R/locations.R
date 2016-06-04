@@ -206,7 +206,7 @@ locations <- function(input, output, session){
     #print(report)
     }) # progress
 
-    html <- includeHTML(fn)
+    #html <- includeHTML(fn)
     HTML( "<br/>", paste(c(report, rep_dir, fn), "<br/>"), html)
   })
 
