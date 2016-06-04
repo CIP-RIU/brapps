@@ -186,28 +186,29 @@ locations <- function(input, output, session){
 
     setProgress(5)
     fn = "no report created."
-    # try({
-    #
-    # #fn <- withr::with_dir(report_dir, {
-    # fn <- rmarkdown::render(report,
-    #                         #output_format = "all",
-    #                         output_dir = rep_dir, #rep_dir,
-    #                         params = list(
-    #                           locs = locs))
-    # #})
-    # })
+    try({
+
+    #fn <- withr::with_dir(report_dir, {
+    fn <- rmarkdown::render(report,
+                            #output_format = "all",
+                            output_dir = rep_dir, #rep_dir,
+                            params = list(
+                              locs = locs))
+    #})
+    })
     setProgress(8)
 
     #html <- readLines(file.path(rep_dir, "report_location.html"))
-    report_html = stringr::str_replace(rep_name, ".Rmd", ".html")
+    #report_html = stringr::str_replace(rep_name, ".Rmd", ".html")
     #output$rep_loc <- renderUI("")
-    report = file.path("www",'reports', report_html)
+    #report = file.path("www",'reports', report_html)
     #print(fn)
     #print(report)
     }) # progress
 
-    #html <- includeHTML(fn)
-    HTML( "<br/>", paste(c(report, rep_dir, fn), "<br/>"))
+    html <- includeHTML(fn)
+    HTML(html)
+   # HTML( "<br/>", paste(c(report, rep_dir, fn), "<br/>"), fn, html)
   })
 
 
