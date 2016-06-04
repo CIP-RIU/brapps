@@ -173,42 +173,22 @@ locations <- function(input, output, session){
     locs <- dat_sel()
     n = nrow(locs)
     if(n<1) return("no locations in view!")
-    #report = paste0("report_location.Rmd")
-    #report = file.path("inst", "rmd", "report_location.Rmd")
     rep_name = "report_location.Rmd"
-    #report = file.path(system.file("rmd", package = "brapps"), rep_name)
     report <- file.path("reports", rep_name)
-    # if(!file.exists(rep_dir)){
-    #   rep_dir = tempdir()
-    # }
-    #report_dir = system.file("apps/hdtest/reports", package = "brapps")
-    wd = getwd()
 
     setProgress(5)
     fn = "no report created."
     try({
-
-    #fn <- withr::with_dir(report_dir, {
     fn <- rmarkdown::render(report,
-                            #output_format = "all",
                             output_dir = file.path("www", "reports"), #rep_dir,
                             params = list(
                               locs = locs))
-    #})
     })
     setProgress(8)
-
-    #html <- readLines(file.path(rep_dir, "report_location.html"))
-    #report_html = stringr::str_replace(rep_name, ".Rmd", ".html")
-    #output$rep_loc <- renderUI("")
-    #report = file.path("www",'reports', report_html)
-    #print(fn)
-    #print(report)
     }) # progress
 
     html <- includeHTML(fn)
     HTML(html)
-   # HTML( "<br/>", paste(c(report, rep_dir, fn), "<br/>"), fn, html)
   })
 
 
