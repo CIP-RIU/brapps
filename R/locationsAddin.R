@@ -45,12 +45,13 @@ locationsAddin <- function(){
                            miniUI::miniContentPanel(padding = 0,
                                     htmlOutput("site_genotypes")
                    )
-      ),
-      miniUI::miniTabPanel("Site scatter chart", icon = icon("line-chart"),
-                           miniUI::miniContentPanel(padding = 0,
-                                    shiny::uiOutput("sitesScatter")
-                   )
       )
+      # ,
+      # miniUI::miniTabPanel("Site scatter chart", icon = icon("line-chart"),
+      #                      miniUI::miniContentPanel(padding = 0,
+      #                               shiny::uiOutput("sitesScatter")
+      #              )
+      # )
     )
 
   )

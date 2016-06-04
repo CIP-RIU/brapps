@@ -6,6 +6,7 @@
 #' @param session shiny
 #' @import shiny
 #' @importFrom magrittr '%>%'
+#' @importFrom brapi can_internet
 #' @author Reinhard Simon
 # @return data.frame
 #' @export
@@ -178,7 +179,20 @@ locations <- function(input, output, session){
     n = nrow(locs)
     if(n<1) return("no locations in view!")
     rep_name = "report_location.Rmd"
-    report <- file.path("reports", rep_name)
+    #tgt = file.path(getwd(), "reports", rep_name)
+    report <- file.path(getwd(), "reports", rep_name)
+    dn = dirname(report)
+    if(!dir.exists(dn)) {
+      dir.create(report)
+    }
+    if(!file.exists(report)){
+
+      org = system.file("/apps/hdtest/reports/report_location.Rmd", package = "brapps")
+
+      file.copy(org, report)
+    }
+
+
 
     setProgress(5)
     fn = "no report created."
@@ -342,7 +356,7 @@ locations <- function(input, output, session){
       if(is.null(sid)){
         out = msg_no_loc
       } else {
-      print(sid)
+      #print(sid)
       year = NULL
       stds = get_all_studies()
 
