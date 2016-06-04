@@ -42,7 +42,8 @@ ui <- dashboardPage(skin = "yellow",
 
                         ),
 
-                        menuItem("Environment", tabName = "env_dashboard", icon = icon("globe")
+                        menuItem("Environment", tabName = "env_dashboard", icon = icon("globe"),
+                                 selected = TRUE
                       ),
                       menuItem("About", tabName = "inf_dashboard", icon = icon("info"))
                     )),
@@ -75,10 +76,10 @@ ui <- dashboardPage(skin = "yellow",
                                                             htmlOutput("site_fieldtrials")
                                                 )
                                                 # TODOD
-                                                # ,
-                                                # tabPanel("Genotypes",
-                                                #          htmlOutput("site_genotypes")
-                                                # )
+                                                ,
+                                                tabPanel("Genotypes",
+                                                         htmlOutput("site_genotypes")
+                                                )
 
                                          )
                                   )
@@ -188,6 +189,7 @@ fieldbook_analysis <- function(input, output, session){
   observe({
   output$hotFieldbook <- DT::renderDataTable({
     #print(input$fbaInput)
+    req(input$fbaInput)
     x = NULL
     withProgress(message = "Loading fieldbook ...",
                  detail = "This may take a while ...", value = 1, max = 4, {
@@ -256,7 +258,7 @@ fieldbook_analysis <- function(input, output, session){
   output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
     if(is.null(input$fbaInput)) return(NULL)
     DF = fbInput()
-    print(str(DF))
+    #print(str(DF))
     if(is.null(DF)) return(NULL)
     #if (!is.null(DF)) {
     #ci = input$hotFieldbook_select$select$c

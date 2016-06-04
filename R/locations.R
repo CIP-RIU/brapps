@@ -11,6 +11,8 @@
 #' @export
 locations <- function(input, output, session){
 
+  msg_no_loc = "No location selected."
+
   # greenLeafIcon <- leaflet::makeIcon(
   #   iconUrl = "http://leafletjs.com/docs/images/leaf-green.png",
   #   iconWidth = 38, iconHeight = 95,
@@ -24,20 +26,20 @@ locations <- function(input, output, session){
 
   crop = "sweetpotato"
 
-  get_base_dir <- function(){
-    getwd()
-  }
-
-  get_base_data <- function(source = "brapi", acrop = crop, atype = "fieldbook"){
-    bd = file.path(get_base_dir(), "xdata")
-    fp = file.path(bd, source, acrop, atype)
+  # get_base_dir <- function(){
+  #   getwd()
+  # }
+  #
+  get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
+    bd = fbglobal::get_base_dir(mode)
+    fp = file.path(bd, acrop, atype)
     if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
     fp
   }
-
-  get_plain_host <- function(){
-   brapi::get_brapi()
-  }
+  #
+  # get_plain_host <- function(){
+  #  brapi::get_brapi()
+  # }
 
   return_null_with_msg <- function(msg){
     cat(msg)
@@ -149,7 +151,9 @@ locations <- function(input, output, session){
   }
 
   observe({
+    #print("x")
     rec = mrks()
+    #print(rec)
     if (nrow(rec)==1) {
       output$siteInfo <- renderUI({
         #str(rec) %>% paste %>% print
@@ -157,7 +161,7 @@ locations <- function(input, output, session){
       })
     } else {
       output$siteInfo = renderUI({
-        "No location selected."
+        msg_no_loc
       })
     }
 
@@ -222,7 +226,6 @@ locations <- function(input, output, session){
         stds = readRDS(file = fp)
       }
     })
-
     if(is.null(stds)){
       stds = brapi::studies()
       saveRDS(stds, fp)
@@ -230,130 +233,172 @@ locations <- function(input, output, session){
     stds
   }
 
+  get_study_path <- function(year, id){
+    # if(can_internet()){
+    #   mode = "brapi"
+    # } else {
+    #   mode = "Demo"
+    # }
+    mode = "brapi"
+    if(is.null(year)){
+      fp = file.path(get_base_data(atype = "fieldbook", mode = mode), paste0(id,".rda"))
+    }
+    if(!is.null(year)){
+      fp = file.path(get_base_data(atype = "fieldbook", mode = mode), year, paste0(id, ".rda"))
+    }
+    dn = dirname(fp)
+    #print(dn)
+    if(!dir.exists(dn)) dir.create(dn, rec=T)
+    fp
+  }
+
+  get_study <- function(year, id){
+
+    fp = get_study_path(year, id)
+    stdy = NULL
+    try({
+      if(file.exists(fp)) {
+        stdy = readRDS(file = fp)
+      }
+    })
+    if(is.null(stdy)){
+      if(can_internet()){
+        stdy = brapi::study_table(id)
+        saveRDS(stdy, fp)
+      }
+     }
+    stdy
+  }
+
   get_trials_for_location <- function(){
     locs = get_geo_mark()
-    #print(locs)
     if(is.null(locs)) return(NULL)
 
     stds = get_all_studies()
-    # 1st try to find via id if not use unique name
-    stds <- stds[!is.na(stds$locationDbId),]
+    stds <- stds[!is.na(stds$locationDbId), ]
     sid = stds[stds$locationDbId == locs$locationDbId, "studyDbId"]
-    # if (length(sid) == 0) {
-    #   sid = stds[stringr::str_detect(toupper(stds$name), locs$Uniquename), "studyDbId"]
-    # }
+
+    # Download most recent trial for this location!
+    if(can_internet()){
+      ms = max(sid)
+      xs = stds[stds$studyDbId == ms, ]
+      ss = get_study(stds$years[ms], ms)
+    }
     sid
   }
 
 
   output$site_fieldtrials <- renderUI({
+    html = msg_no_loc
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
     sid = get_trials_for_location()
     #print(sid)
     if(is.null(sid)){
-      out = "No location selected."
+      out = msg_no_loc
     } else {
     setProgress(5)
 
     if(length(sid) > 0){
-      host = brapi$db  #get_plain_host()
-      path = "/breeders/trial/"
-      if(!stringr::str_detect(host, "http")){
-        host = paste0("http://", host)
-      }
-      stds = get_all_studies()
 
-      out = paste0("<br><a href='",host, path, sid, "' target='_blank'>", stds[stds$studyDbId %in% sid, "name"], "</a>") %>%
-        paste(collapse = ", ")
+      stds = get_all_studies()
+      stds = stds[stds$studyDbId %in% sid, ]
+
+      txt = paste0("No internet connected!<br/>")
+      out = stds$name %>% paste(collapse = ", ")
+
+      if(can_internet() ){
+        txt = ""
+        #if(is.null(brapi)) brapi_con()
+        host = brapi$db  #get_plain_host()
+
+        path = "/breeders/trial/"
+        if(!stringr::str_detect(host, "http")){
+          host = paste0("https://", host)
+        }
+        #print(sid)
+        out = paste0("<br><a href='",host, path, sid, "' target='_blank'>", stds$name, "</a>") %>%
+          paste(collapse = ", ")
+
       }
+      html = paste0(txt, out)
+    }
 
       setProgress(8)
 
       }
     })
-    HTML(out)
+    HTML(html)
 
   })
 
 
   output$site_genotypes <- renderUI({
-    out = "No data retrieved."
-    if(!is.null(get_geo_mark())){
+    out = msg_no_loc
+    #if(!can_internet()) return("No internet connected!")
+    #if(!is.null(get_geo_mark())){
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
       sid = get_trials_for_location()
-      #print(sid)
+      #print(paste("geno/site",sid))
+      if(is.null(sid)){
+        out = msg_no_loc
+      } else {
+      print(sid)
       year = NULL
       stds = get_all_studies()
-      if(length(sid) >0){
-        # get a study from the most recent year
-        if(length(sid) > 1){
-          xs = stds[stds$studyDbId %in% sid, 1]
 
-          try({
-            xs = stds
-            xs$years = as.integer(xs$years)
-            xs = xs[xs$studyDbId %in% sid,]
-            xs = xs[max(xs$years) == xs$years, ]
-          })
-          stds = xs
-          sid = xs$studyDbId
+      #ms = NULL
+      if(length(sid) > 1){
+        sid = max(sid)
 
-        } else {
-
-            stds = stds[stds$studyDbId == sid, ]
-
-        }
       }
-      #print(stds)
+      stds = stds[stds$studyDbId == sid, ]
       year = stds$years
 
+      #print(year)
       fb = NULL
-        fbid = paste0(stds$studyDbId, ".rda")
-
-        if(!is.null(year) & !is.na(year)){
-          fp1 = file.path(get_base_data(atype = "fieldbook"), year)
-        } else {
-          fp1 = file.path(get_base_data(atype = "fieldbook"))
-        }
-        if(!dir.exists(fp1)) dir.create(fp1)
-        fp = file.path(fp1, fbid)
+      fb = get_study(year, sid)
+      #print(head(fb))
 
 
-        try({
-          if(file.exists(fp)) {
-            fb = readRDS(file = fp)
-          }
-        })
-
-        if(is.null(fb)){
-          fb = brapi::study_table(sid[1])
-          saveRDS(fb, fp)
-        }
-
-
-      if(is.null(fb)) return(NULL)
+      if(is.null(fb)) return("Could not get data!")
       topgp = brapi::get_top_germplasm(fb)
+      # print(year)
+      # print(sid)
+      # print(topgp)
 
       gid = topgp$germplasmDbId
       gnm = topgp$germplasmName
       hid = topgp$`Harvest index computing percent`
+      if(can_internet()){
+        host = brapi$db
+        if(!stringr::str_detect(host, "http")){
+          host = paste0("https://", host)
+        }
 
-      host = brapi$db
+        path = "/stock/"
+        out = paste0("<a href='",host, path, gid,"/view' target='_blank'>", gnm, " (",hid,  ")</a>")
 
-      path = "/stock/"
+        out = paste(out, collapse = ", ")
+        txt = ""
 
-      #TODO change for genotypes
-      out = paste0("<a href='http://",host, path, gid,"/view' target='_blank'>", gnm, " (",hid,  ")</a>")
-      txt = paste0("Top genotypes for trait (", "Harvest index" ,") from most recent (", year
+      }
+      if(!can_internet()){
+        out = paste0 (gnm, " (",hid,  ")")
+        out = paste(out, collapse = ", ")
+        txt = paste("No internet connected!</br></br>")
+      }
+
+      txt = paste0(txt, "Top genotypes for trait (", "Harvest index" ,") from most recent (", year
                    ,") fieldbook: ", stds$name,
                    " for location: ",get_geo_mark()$name,":</br>") # TODO make trait choosable
-      out = paste( out, collapse = ", ")
       out = paste(txt, out)
+      #
 
     setProgress(8)
+      }
 
     })
-    }
+    #}
     HTML(out)
   })
 

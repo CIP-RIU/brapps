@@ -9,6 +9,8 @@
 #' @import qtlcharts
 #' @import agricolae
 #' @author Reinhard Simon
+#' @importFrom shinyFiles shinyFileChoose getVolumes parseFilePaths
+#' @importFrom utils read.csv
 # @return data.frame
 #' @export
 fieldbook_analysis <- function(input, output, session){
