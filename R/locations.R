@@ -177,7 +177,7 @@ locations <- function(input, output, session){
     #report = file.path("inst", "rmd", "report_location.Rmd")
     rep_name = "report_location.Rmd"
     report = file.path(system.file("rmd", package = "brapps"), rep_name)
-    rep_dir <- "www/reports/"
+    rep_dir <- file.path("www","reports")
     # if(!file.exists(rep_dir)){
     #   rep_dir = tempdir()
     # }
@@ -185,13 +185,16 @@ locations <- function(input, output, session){
     wd = getwd()
 
     setProgress(5)
+    fn = "no report created."
+    try({
 
-    fn <- withr::with_dir(report_dir, {
-     rmarkdown::render(report,
+    #fn <- withr::with_dir(report_dir, {
+    fn <- rmarkdown::render(report,
                             #output_format = "all",
-                            output_dir = file.path("www", "reports"), #rep_dir,
+                            output_dir = rep_dir, #rep_dir,
                             params = list(
                               locs = locs))
+    #})
     })
     setProgress(8)
 
@@ -204,7 +207,7 @@ locations <- function(input, output, session){
     }) # progress
 
     html <- includeHTML(fn)
-    HTML(fn, "<br/>", paste(list.files("www/reports"), "<br/>"))
+    HTML( "<br/>", paste(c(report, rep_dir, fn), "<br/>"), html)
   })
 
 
