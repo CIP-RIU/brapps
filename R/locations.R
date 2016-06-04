@@ -176,12 +176,12 @@ locations <- function(input, output, session){
     #report = paste0("report_location.Rmd")
     #report = file.path("inst", "rmd", "report_location.Rmd")
     rep_name = "report_location.Rmd"
-    report = file.path(system.file("rmd", package = "brapps"), rep_name)
-    rep_dir <- file.path("www","reports")
+    #report = file.path(system.file("rmd", package = "brapps"), rep_name)
+    report <- file.path("reports", rep_name)
     # if(!file.exists(rep_dir)){
     #   rep_dir = tempdir()
     # }
-    report_dir = system.file("apps/hdtest/reports", package = "brapps")
+    #report_dir = system.file("apps/hdtest/reports", package = "brapps")
     wd = getwd()
 
     setProgress(5)
@@ -191,7 +191,7 @@ locations <- function(input, output, session){
     #fn <- withr::with_dir(report_dir, {
     fn <- rmarkdown::render(report,
                             #output_format = "all",
-                            output_dir = rep_dir, #rep_dir,
+                            output_dir = file.path("www", "reports"), #rep_dir,
                             params = list(
                               locs = locs))
     #})
