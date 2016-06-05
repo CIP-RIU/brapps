@@ -32,15 +32,15 @@ ui <- dashboardPage(skin = "yellow",
                     dashboardSidebar(
                       sidebarMenu(
 
-                        # menuItem("Phenotype", icon = icon("leaf"),
-                        #          menuSubItem("Analysis",
-                        #                      tabName = "phe_dashboard", icon = icon("calculator"))
-                        #          ,
-                        #          uiOutput("fbList")
-                        #          #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999)
-                        #
-                        #
-                        # ),
+                        menuItem("Phenotype", icon = icon("leaf"),
+                                 menuSubItem("Analysis",
+                                             tabName = "phe_dashboard", icon = icon("calculator"))
+                                 ,
+                                 uiOutput("fbList")
+                                 #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999)
+
+
+                        ),
 
                         menuItem("Environment", tabName = "env_dashboard", icon = icon("globe")
                       )
@@ -387,7 +387,7 @@ sv <- function(input, output, session) ({
 
   shinyURL.server()
 
-  #fieldbook_analysis(input, output, session)
+  brapps::fieldbook_analysis(input, output, session)
 
   brapps::locations(input, output, session)
 

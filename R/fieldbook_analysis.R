@@ -15,78 +15,41 @@
 #' @export
 fieldbook_analysis <- function(input, output, session){
 
-  brapi_host = "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu"
+  brapi_host = brapi$db
 
-  volumes <- getVolumes(c("(E:)", "Page File (F:)"))
+    dataInput <- reactive({
+      fbId = input$fbaInput
+      fbId
+    })
 
-  shinyFileChoose(input, 'fileFB', roots=volumes, session=session,
-                  filetypes=c( 'xlsx', 'csv'))
+    fbInput <- reactive({
+      req(input$fbaInput)
+      #fbId = dataInput()
+      #print(fbId)
+      brapi::study_table(input$fbaInput)
 
+    })
 
-  get_plain_host <- function(){
-    host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]
-    if(host == "") host = brapi_host
-    if(stringr::str_detect(host, "@")){
-      if(stringr::str_detect(host, "http://")) {
-        host = stringr::str_replace(host, "http://", "")
-      }
-      host = stringr::str_replace(host, "[^.]{3,8}:[^.]{4,8}@", "")
-    }
-    host
-  }
+    fbList <- reactive({
+      shiny::withProgress(message = 'Gathering info ...', {
+      sts = brapi::studies()
+      sts[sts$studyType != "", ]
+      })
+    })
 
-
-  dataInput <- shiny::reactive({
-    fbId = input$fbaInput
-    fbId
-  })
-
-  fbInput <- shiny::reactive({
-    req(input$fileFB)
-    # fbId = dataInput()
-    # brapi::study_table(fbId)
-
-    mf = parseFilePaths(volumes, input$fileFB)$datapath
-    mf = as.character(mf)
-    if(stringr::str_detect(mf, ".xlsx")){
-      fb = readxl::read_excel(mf, "Fieldbook")
-    } else {
-      fb = read.csv(mf)
-    }
-    xi = which(names(fb) == "TRT1")
-    names(fb)[xi] = "germplasmName"
-    #print(mf)
-    fb
-  })
+    output$fbList <- renderUI({
+          sts = fbList()
+          if(is.null(sts)) return()
+          sl = as.list(sts$studyDbId)
+          names(sl) = sts$name
+          selectInput("fbaInput", "Fieldbook", choices = sl)
+        })
 
 
-# output$hotFieldbook <- renderDataTable({
-#   try({
-#     DF <- fbInput()
-#     if(!is.null(DF)){
-#
-#       rh = rhandsontable::rhandsontable(DF,
-#                          selectCallback = TRUE,
-#                          readOnly = FALSE,useTypes = TRUE) %>%
-#         hot_table(highlightCol = TRUE, highlightRow = TRUE) %>%
-#         hot_cols( fixedColumnsLeft = 6)
-#       rh
-#     }
-#   })
-# })
 
   output$hotFieldbook <- DT::renderDataTable({
-    #renderRHandsontable({
-    x = NULL
-    withProgress(message = "Loading fieldbook ...",
-                 detail = "This may take a while ...", value = 1, max = 4, {
-                   try({
-                     x <- fbInput()
-
-                   })
-
-                 })
-    x
+    req(input$fbaInput)
+    fbInput()
   },  server = FALSE,  extensions = 'FixedColumns',
   options = list(scrollX = TRUE
                  # ,
@@ -97,7 +60,7 @@ fieldbook_analysis <- function(input, output, session){
 
 
 output$vcor_output = qtlcharts::iplotCorr_render({
-
+  req(input$fbaInput)
   DF <- fbInput()
   shiny::withProgress(message = 'Imputing missing values', {
     options(warn = -1)
