@@ -94,7 +94,7 @@ locations <- function(input, output, session){
     if(is.null(pts)) pts <- dat()
     #print("3")
 
-    pts = dat()
+    #pts = dat()
     #print(pts)
     if(is.null(pts)) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
     #print("4")
