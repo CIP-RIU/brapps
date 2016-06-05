@@ -20,29 +20,21 @@ locations <- function(input, output, session){
     iconUrl = file.path(url, "leaf-green.png"),
     iconWidth = 38, iconHeight = 95,
     iconAnchorX = 22, iconAnchorY = 94,
-    shadowUrl = file.path(url, "leaf-shadow.png"),,
+    shadowUrl = file.path(url, "leaf-shadow.png"),
     shadowWidth = 50, shadowHeight = 64,
     shadowAnchorX = 4, shadowAnchorY = 62
   )
 
-  #if(!exists("brapi")) return()
-
   crop = "sweetpotato"
 
-  # get_base_dir <- function(){
-  #   getwd()
-  # }
-  #
   get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
     bd = fbglobal::get_base_dir(mode)
     fp = file.path(bd, acrop, atype)
+    #print("get base data")
+    #rint(fp)
     if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
     fp
   }
-  #
-  # get_plain_host <- function(){
-  #  brapi::get_brapi()
-  # }
 
   return_null_with_msg <- function(msg){
     cat(msg)
@@ -51,27 +43,13 @@ locations <- function(input, output, session){
 
   fp = file.path(get_base_data(atype = "location"), "locations.rda")
 
-  #locationData = function(){NULL}
-
-  #try({
   locationData <- reactiveFileReader(10000, session, fp, readRDS)
-  #})
-
 
   dat <- reactive({
-
     dat = NULL
     if(file.exists(fp)){
       dat = locationData()
     }
-
-
-    #dat = NULL
-    # try({
-    #   if(file.exists(fp)) {
-    #     dat = readRDS(file = fp)
-    #   }
-    # })
 
     if(is.null(dat)) {
 
@@ -84,13 +62,15 @@ locations <- function(input, output, session){
       return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
     }
     }
-    dat[!is.na(dat$latitude), ]
+    out = dat[!is.na(dat$latitude), ]
+    #print(head(dat))
+    dat
   })
 
 
 
   dat_sel <- reactive({
-    req(input$tableLocs)
+    #req(input$tableLocs)
     #req(input$tableLocs)
     if(is.null(dat())) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
     sel = input$tableLocs_rows_all
@@ -108,15 +88,18 @@ locations <- function(input, output, session){
 
   output$mapLocs <- leaflet::renderLeaflet({
     #print("1")
-    #pts <- dat_sel()
+    pts <- dat_sel()
     #print("2")
 
-    #if(is.null(pts)) pts <- dat()
+    if(is.null(pts)) pts <- dat()
     #print("3")
 
     pts = dat()
+    #print(pts)
     if(is.null(pts)) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
     #print("4")
+    #print(pts)
+    pts = pts[!is.na(pts$longitude), ]
 
     leaflet::leaflet(pts, height = "100%") %>%
       leaflet::addTiles() %>%
@@ -128,8 +111,6 @@ locations <- function(input, output, session){
 
 
   })
-
-
 
   # download the filtered data
   output$locsDL = downloadHandler('BRAPI-locs-filtered.csv', content = function(file) {
@@ -148,9 +129,7 @@ locations <- function(input, output, session){
          xlab = "altitude [m]", sub = "Selected location frequencies are in red.")
     graphics::hist(dat_sel()$altitude, add = T, col = "red")
     if(length(mrks()) > 0){
-      # print("abline")
-      # print(mrks()$altitude)
-      graphics::abline(v = mrks()$altitude, col="blue", lwd = 5)
+       graphics::abline(v = mrks()$altitude, col="blue", lwd = 5)
     }
   })
 
@@ -171,7 +150,12 @@ locations <- function(input, output, session){
   }
 
   output$siteInfo <- renderUI({
-    out = paste(fp, "<br/>", str(dat()))
+    out = msg_no_loc
+    rec = mrks()
+    if (nrow(rec)==1) {
+      out = rec2info(rec)
+    }
+
     HTML(out)
   })
 
@@ -234,15 +218,6 @@ locations <- function(input, output, session){
     HTML(html)
   })
 
-
-  get_geo_locs <- function(){
-    #locs = dat() #  brapi::locations_list()
-    #filter out those without georefs
-    #locs = locs[!is.na(locs$latitude), ]
-    #if(nrow(locs) == 0) return(NULL)
-    #locs
-    #dat()
-  }
 
   get_geo_mark <- function(){
     click<-input$mapLocs_marker_click
