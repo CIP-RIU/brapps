@@ -33,7 +33,7 @@ ui <- dashboardPage(skin = "yellow",
                       sidebarMenu(
 
                         menuItem("Phenotype", icon = icon("leaf"),
-                                 menuSubItem("Analysis", selected = TRUE,
+                                 menuSubItem("Analysis",
                                              tabName = "phe_dashboard", icon = icon("calculator"))
                                  ,
                                  uiOutput("fbList")
@@ -42,8 +42,7 @@ ui <- dashboardPage(skin = "yellow",
 
                         ),
 
-                        menuItem("Environment", tabName = "env_dashboard", icon = icon("globe"),
-                                 selected = TRUE
+                        menuItem("Environment", tabName = "env_dashboard", icon = icon("globe")
                       ),
                       menuItem("About", tabName = "inf_dashboard", icon = icon("info"))
                     )),

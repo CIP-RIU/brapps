@@ -14,14 +14,16 @@ locations <- function(input, output, session){
 
   msg_no_loc = "No location selected."
 
-  # greenLeafIcon <- leaflet::makeIcon(
-  #   iconUrl = "http://leafletjs.com/docs/images/leaf-green.png",
-  #   iconWidth = 38, iconHeight = 95,
-  #   iconAnchorX = 22, iconAnchorY = 94,
-  #   shadowUrl = "http://leafletjs.com/docs/images/leaf-shadow.png",
-  #   shadowWidth = 50, shadowHeight = 64,
-  #   shadowAnchorX = 4, shadowAnchorY = 62
-  # )
+  url = system.file("images", package = "brapps")
+  greenLeafIcon <- leaflet::makeIcon(
+
+    iconUrl = file.path(url, "leaf-green.png"),
+    iconWidth = 38, iconHeight = 95,
+    iconAnchorX = 22, iconAnchorY = 94,
+    shadowUrl = file.path(url, "leaf-shadow.png"),,
+    shadowWidth = 50, shadowHeight = 64,
+    shadowAnchorX = 4, shadowAnchorY = 62
+  )
 
   #if(!exists("brapi")) return()
 
@@ -322,12 +324,19 @@ locations <- function(input, output, session){
 
       if(can_internet() & !is.null(brapi)){
         txt = ""
-        #if(is.null(brapi)) brapi_con()
-        host = brapi$db  #get_plain_host()
 
         path = "/breeders/trial/"
-        if(!stringr::str_detect(host, "@")){
-          host = paste0("https://", host)
+        db = brapi$db
+        host = db
+        if(!stringr::str_detect(db, "@")){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
+        }
+        if(rstudioapi::isAvailable()){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
         }
         #print(sid)
         out = paste0("<br><a href='",host, path, sid, "' target='_blank'>", stds$name, "</a>") %>%
@@ -394,9 +403,17 @@ locations <- function(input, output, session){
       hid = topgp$`Harvest index computing percent`
       txt = ""
       if(can_internet() & !is.null(brapi)){
-        host = brapi$db
-        if(!stringr::str_detect(host, "@")){
-          host = paste0("https://", host)
+        db = brapi$db
+        host = db
+        if(!stringr::str_detect(db, "@")){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
+        }
+        if(rstudioapi::isAvailable()){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
         }
 
         path = "/stock/"
@@ -427,5 +444,29 @@ locations <- function(input, output, session){
     HTML(out)
   })
 
+
+  observeEvent(input$mapLocs_marker_click, {
+    ## Get the click info like had been doing
+    click <- input$mapLocs_marker_click
+    clat <- click$lat
+    clng <- click$lng
+    #address <- revgeocode(c(clng,clat))
+
+    ## Add the circle to the map proxy
+    ## so you dont need to re-render the whole thing
+    ## I also give the circles a group, "circles", so you can
+    ## then do something like hide all the circles with hideGroup('circles')
+    #print(click)
+    # leafletProxy('mapLocs') %>%
+    #   removeMarker("mapLocs", "marked")
+
+    leafletProxy('mapLocs') %>% # use the proxy to save computation
+      # addCircles(lng=clng, lat=clat, group='circles',
+      #            weight=1, radius=100, color='black', fillColor='orange',
+      #            #popup=address,
+      #            fillOpacity=0.5, opacity=1)
+      addMarkers(lng = clng, lat = clat, layerId = "marked", icon = greenLeafIcon)
+
+  })
 
 }
