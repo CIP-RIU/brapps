@@ -58,28 +58,28 @@ ui <- dashboardPage(skin = "yellow",
                                           tabPanel("Map",
                                                    leafletOutput("mapLocs")
                                           )
-                                   #        ,
-                                   #        tabPanel("Report",
-                                   #                 htmlOutput("rep_loc")
-                                   #                 #HTML("<h1>Under development!</h1>")
-                                   #        )
+                                          ,
+                                          tabPanel("Report",
+                                                   htmlOutput("rep_loc")
+                                                   #HTML("<h1>Under development!</h1>")
+                                          )
                                    )
                                   )
                                   ,
                                   column(width = 4,
                                          tabBox(width = NULL, title = "Site"
                                                 ,
-                                                # tabPanel("Histogram",
-                                                #          plotOutput("histogram")
-                                                # )
-                                                # ,
+                                                tabPanel("Histogram",
+                                                         plotOutput("histogram")
+                                                )
+                                                ,
                                                 tabPanel("Info",
                                                          htmlOutput("siteInfo")
                                                 )
-                                                #,
-                                                #tabPanel("Fieldtrials",
-                                                #             htmlOutput("site_fieldtrials")
-                                                # )
+                                                ,
+                                                tabPanel("Fieldtrials",
+                                                            htmlOutput("site_fieldtrials")
+                                                )
                                                 # TODOD
                                                 # ,
                                                 # tabPanel("Genotypes",

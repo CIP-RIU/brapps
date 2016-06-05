@@ -27,15 +27,6 @@ locations <- function(input, output, session){
 
   crop = "sweetpotato"
 
-  get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
-    bd = fbglobal::get_base_dir(mode)
-    fp = file.path(bd, acrop, atype)
-    #print("get base data")
-    #rint(fp)
-    if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
-    fp
-  }
-
   return_null_with_msg <- function(msg){
     cat(msg)
     return(NULL)
@@ -87,18 +78,9 @@ locations <- function(input, output, session){
                                        options = list(scrollX = TRUE))
 
   output$mapLocs <- leaflet::renderLeaflet({
-    #print("1")
     pts <- dat_sel()
-    #print("2")
-
     if(is.null(pts)) pts <- dat()
-    #print("3")
-
-    #pts = dat()
-    #print(pts)
     if(is.null(pts)) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
-    #print("4")
-    #print(pts)
     pts = pts[!is.na(pts$longitude), ]
 
     leaflet::leaflet(pts, height = "100%") %>%
@@ -158,24 +140,6 @@ locations <- function(input, output, session){
 
     HTML(out)
   })
-
-  # observe({
-  #   #print("x")
-  #   rec = mrks()
-  #   #print(rec)
-  #   if (nrow(rec)==1) {
-  #     output$siteInfo <- renderUI({
-  #       #str(rec) %>% paste %>% print
-  #       #rec2info(rec)
-  #       fp
-  #     })
-  #   } else {
-  #     output$siteInfo = renderUI({
-  #       msg_no_loc
-  #     })
-  #   }
-  #
-  # })
 
 
   ############### report #########
@@ -290,7 +254,7 @@ locations <- function(input, output, session){
 
     stds = get_all_studies()
     stds <- stds[!is.na(stds$locationDbId), ]
-    sid = stds[stds$locationDbId == locs$locationDbId, "studyDbId"]
+    sid = stds[stds$locationDbId %in% locs$locationDbId, "studyDbId"]
 
     # Download most recent trial for this location!
     if(can_internet()){
