@@ -460,12 +460,12 @@ locations <- function(input, output, session){
     # leafletProxy('mapLocs') %>%
     #   removeMarker("mapLocs", "marked")
 
-    leafletProxy('mapLocs') %>% # use the proxy to save computation
+    leaflet::leafletProxy('mapLocs') %>% # use the proxy to save computation
       # addCircles(lng=clng, lat=clat, group='circles',
       #            weight=1, radius=100, color='black', fillColor='orange',
       #            #popup=address,
       #            fillOpacity=0.5, opacity=1)
-      addMarkers(lng = clng, lat = clat, layerId = "marked", icon = greenLeafIcon)
+      leaflet::addMarkers(lng = clng, lat = clat, layerId = "marked", icon = greenLeafIcon)
 
   })
 
