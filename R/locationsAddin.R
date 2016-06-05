@@ -60,8 +60,11 @@ locationsAddin <- function(){
 
   server <- function(input, output, session) {
 
-    if(file.exists("brapi_session.rda")){
-      load("brapi_session.rda")
+    fp = file.path(fbglobal::get_base_dir("brapi"), "brapi_session.rda")
+    if(file.exists(fp)){
+      #load("brapi_session.rda")
+      brapi <<- readRDS(fp)
+
     } else (
       stopApp("Please connect to a database.")
     )

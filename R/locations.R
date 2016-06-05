@@ -28,7 +28,7 @@ locations <- function(input, output, session){
   crop = "sweetpotato"
 
   get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
-    bd = fbglobal::get_base_dir(mode)
+    bd = fbglobal::get_base_dir(mode = mode)
     fp = file.path(bd, acrop, atype)
     #print("get base data")
     #rint(fp)
