@@ -450,21 +450,7 @@ locations <- function(input, output, session){
     click <- input$mapLocs_marker_click
     clat <- click$lat
     clng <- click$lng
-    #address <- revgeocode(c(clng,clat))
-
-    ## Add the circle to the map proxy
-    ## so you dont need to re-render the whole thing
-    ## I also give the circles a group, "circles", so you can
-    ## then do something like hide all the circles with hideGroup('circles')
-    #print(click)
-    # leafletProxy('mapLocs') %>%
-    #   removeMarker("mapLocs", "marked")
-
-    leaflet::leafletProxy('mapLocs') %>% # use the proxy to save computation
-      # addCircles(lng=clng, lat=clat, group='circles',
-      #            weight=1, radius=100, color='black', fillColor='orange',
-      #            #popup=address,
-      #            fillOpacity=0.5, opacity=1)
+     leaflet::leafletProxy('mapLocs') %>% # use the proxy to save computation
       leaflet::addMarkers(lng = clng, lat = clat, layerId = "marked", icon = greenLeafIcon)
 
   })

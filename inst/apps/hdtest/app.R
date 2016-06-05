@@ -75,10 +75,10 @@ ui <- dashboardPage(skin = "yellow",
                                                             htmlOutput("site_fieldtrials")
                                                 )
                                                 # TODOD
-                                                ,
-                                                tabPanel("Genotypes",
-                                                         htmlOutput("site_genotypes")
-                                                )
+                                                # ,
+                                                # tabPanel("Genotypes",
+                                                #          htmlOutput("site_genotypes")
+                                                # )
 
                                          )
                                   )
