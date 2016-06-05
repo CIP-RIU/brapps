@@ -50,12 +50,22 @@ locations <- function(input, output, session){
   }
 
   fp = file.path(get_base_data(atype = "location"), "locations.rda")
-  #print(fp)
+
+  #locationData = function(){NULL}
+
+  #try({
   locationData <- reactiveFileReader(10000, session, fp, readRDS)
+  #})
+
 
   dat <- reactive({
 
-    dat = locationData()
+    dat = NULL
+    if(file.exists(fp)){
+      dat = locationData()
+    }
+
+
     #dat = NULL
     # try({
     #   if(file.exists(fp)) {
@@ -63,17 +73,17 @@ locations <- function(input, output, session){
     #   }
     # })
 
-    # if(is.null(dat)) {
-    #
-    # try({
-    #   if(is.null(brapi)) return_null_with_msg("Not connection to a BrAPI db set. Please connect.")
-    #   dat <- brapi::locations_list()
-    #   saveRDS(dat, file = fp)
-    # })
-    # if(is.null(dat)){
-    #   return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
-    # }
-    # }
+    if(is.null(dat)) {
+
+    try({
+      if(is.null(brapi)) return_null_with_msg("Not connection to a BrAPI db set. Please connect.")
+      dat <- brapi::locations_list()
+      saveRDS(dat, file = fp)
+    })
+    if(is.null(dat)){
+      return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
+    }
+    }
     dat[!is.na(dat$latitude), ]
   })
 
