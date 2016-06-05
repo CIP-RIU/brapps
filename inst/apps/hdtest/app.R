@@ -68,14 +68,16 @@ ui <- dashboardPage(skin = "yellow",
                                   ,
                                   column(width = 4,
                                          tabBox(width = NULL, title = "Site"
-                                                # ,
+                                                ,
                                                 # tabPanel("Histogram",
                                                 #          plotOutput("histogram")
                                                 # )
                                                 # ,
-                                                # tabPanel("Info",
-                                                #          htmlOutput("siteInfo")
-                                                # ), tabPanel("Fieldtrials",
+                                                tabPanel("Info",
+                                                         htmlOutput("siteInfo")
+                                                )
+                                                #,
+                                                #tabPanel("Fieldtrials",
                                                 #             htmlOutput("site_fieldtrials")
                                                 # )
                                                 # TODOD

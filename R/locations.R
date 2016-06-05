@@ -50,8 +50,8 @@ locations <- function(input, output, session){
   }
 
   fp = file.path(get_base_data(atype = "location"), "locations.rda")
-  print(fp)
-  locationData <- reactiveFileReader(1000, session, fp, readRDS)
+  #print(fp)
+  locationData <- reactiveFileReader(10000, session, fp, readRDS)
 
   dat <- reactive({
 
@@ -160,22 +160,28 @@ locations <- function(input, output, session){
     paste0("<center>", x, "</center>") %>% HTML
   }
 
-  observe({
-    #print("x")
-    rec = mrks()
-    #print(rec)
-    if (nrow(rec)==1) {
-      output$siteInfo <- renderUI({
-        #str(rec) %>% paste %>% print
-        rec2info(rec)
-      })
-    } else {
-      output$siteInfo = renderUI({
-        msg_no_loc
-      })
-    }
-
+  output$siteInfo <- renderUI({
+    out = paste(fp, "<br/>", str(dat()))
+    HTML(out)
   })
+
+  # observe({
+  #   #print("x")
+  #   rec = mrks()
+  #   #print(rec)
+  #   if (nrow(rec)==1) {
+  #     output$siteInfo <- renderUI({
+  #       #str(rec) %>% paste %>% print
+  #       #rec2info(rec)
+  #       fp
+  #     })
+  #   } else {
+  #     output$siteInfo = renderUI({
+  #       msg_no_loc
+  #     })
+  #   }
+  #
+  # })
 
 
   ############### report #########
