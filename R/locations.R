@@ -49,33 +49,38 @@ locations <- function(input, output, session){
     return(NULL)
   }
 
+  fp = file.path(get_base_data(atype = "location"), "locations.rda")
+  print(fp)
+  locationData <- reactiveFileReader(1000, session, fp, readRDS)
 
   dat <- reactive({
-    fp = file.path(get_base_data(atype = "location"), "locations.rda")
-    dat = NULL
-    try({
-      if(file.exists(fp)) {
-        dat = readRDS(file = fp)
-      }
-    })
 
-    if(is.null(dat)) {
+    dat = locationData()
+    #dat = NULL
+    # try({
+    #   if(file.exists(fp)) {
+    #     dat = readRDS(file = fp)
+    #   }
+    # })
 
-    try({
-      if(is.null(brapi)) return_null_with_msg("Not connection to a BrAPI db set. Please connect.")
-      dat <- brapi::locations_list()
-      saveRDS(dat, file = fp)
-    })
-    if(is.null(dat)){
-      return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
-    }
-    }
+    # if(is.null(dat)) {
+    #
+    # try({
+    #   if(is.null(brapi)) return_null_with_msg("Not connection to a BrAPI db set. Please connect.")
+    #   dat <- brapi::locations_list()
+    #   saveRDS(dat, file = fp)
+    # })
+    # if(is.null(dat)){
+    #   return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
+    # }
+    # }
     dat[!is.na(dat$latitude), ]
   })
 
 
 
   dat_sel <- reactive({
+    req(input$tableLocs)
     #req(input$tableLocs)
     if(is.null(dat())) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
     sel = input$tableLocs_rows_all
@@ -93,11 +98,13 @@ locations <- function(input, output, session){
 
   output$mapLocs <- leaflet::renderLeaflet({
     #print("1")
-    pts <- dat_sel()
+    #pts <- dat_sel()
     #print("2")
-    if(is.null(pts)) pts <- dat()
+
+    #if(is.null(pts)) pts <- dat()
     #print("3")
 
+    pts = dat()
     if(is.null(pts)) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
     #print("4")
 

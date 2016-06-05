@@ -52,29 +52,32 @@ ui <- dashboardPage(skin = "yellow",
                       tabItems(
                         tabItem(tabName = "env_dashboard",
                                 fluidRow(
-                                  column(width = 8,
+                                  column(width = 8
+                                          ,
                                    tabBox(width = NULL, id = "tabLocation",
                                           tabPanel("Map",
                                                    leafletOutput("mapLocs")
                                           )
-                                          ,
-                                          tabPanel("Report",
-                                                   htmlOutput("rep_loc")
-                                                   #HTML("<h1>Under development!</h1>")
-                                          )
+                                   #        ,
+                                   #        tabPanel("Report",
+                                   #                 htmlOutput("rep_loc")
+                                   #                 #HTML("<h1>Under development!</h1>")
+                                   #        )
                                    )
                                   )
                                   ,
                                   column(width = 4,
-                                         tabBox(width = NULL, title = "Site",
-                                                tabPanel("Histogram",
-                                                         plotOutput("histogram")
-                                                ),
-                                                tabPanel("Info",
-                                                         htmlOutput("siteInfo")
-                                                ), tabPanel("Fieldtrials",
-                                                            htmlOutput("site_fieldtrials")
-                                                )
+                                         tabBox(width = NULL, title = "Site"
+                                                # ,
+                                                # tabPanel("Histogram",
+                                                #          plotOutput("histogram")
+                                                # )
+                                                # ,
+                                                # tabPanel("Info",
+                                                #          htmlOutput("siteInfo")
+                                                # ), tabPanel("Fieldtrials",
+                                                #             htmlOutput("site_fieldtrials")
+                                                # )
                                                 # TODOD
                                                 # ,
                                                 # tabPanel("Genotypes",
@@ -87,11 +90,13 @@ ui <- dashboardPage(skin = "yellow",
 
 
                                 fluidRow(
-                                  column(width = 8,
+                                  column(width = 8
+                                         ,
                                          box(width = NULL,
-                                             title = "Location table",
-                                             #p(class = 'text-center', downloadButton('locsDL', 'Download Filtered Data')),
-                                             DT::dataTableOutput("tableLocs")
+                                             title = "Location table"
+                                             # ,
+                                             # #p(class = 'text-center', downloadButton('locsDL', 'Download Filtered Data')),
+                                             # DT::dataTableOutput("tableLocs")
                                              #locationsUI("location")
                                          )
                                   )
@@ -365,7 +370,6 @@ ui <- dashboardPage(skin = "yellow",
 #     HTML(out)
 #
 #   })
-#
 #
 #
 # }
