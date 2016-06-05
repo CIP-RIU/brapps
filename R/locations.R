@@ -352,7 +352,7 @@ locations <- function(input, output, session){
       #print(year)
       fb = NULL
       fb = get_study(year, sid)
-      print(sid)
+      #print(sid)
 
 
       res = NULL
@@ -361,7 +361,7 @@ locations <- function(input, output, session){
 
       if(is.null(res)){
         topgp = brapi::get_top_germplasm(fb)
-        print(topgp)
+        #print(topgp)
         if(is.null(topgp))
           res = "Cannot find this trait in the most recently added trial."
 
@@ -373,7 +373,7 @@ locations <- function(input, output, session){
       gnm = topgp$germplasmName
       hid = topgp$`Harvest index computing percent`
       txt = ""
-      if(can_internet() & !is.null(brapi)){
+      if(can_internet() ){
         db = brapi$db
         host = db
         if(!stringr::str_detect(db, "@")){
@@ -392,6 +392,8 @@ locations <- function(input, output, session){
 
         out = paste(out, collapse = ", ")
         txt = ""
+        #print("here")
+        #print(out)
 
       }
       if(!can_internet()){
@@ -400,9 +402,11 @@ locations <- function(input, output, session){
         txt = paste("No internet connected!</br></br>")
       }
 
+      locs = dat()
+      loc_name = locs[locs$locationDbId %in% sid, "name"]
       txt = paste0(txt, "Top genotypes for trait (", "Harvest index" ,") from most recent (", year
                    ,") fieldbook: ", stds$name,
-                   " for location: ",get_geo_mark()$name,":</br>") # TODO make trait choosable
+                   " for location: ",loc_name,":</br>") # TODO make trait choosable
       res = paste(txt, out)
       }
 
