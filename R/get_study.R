@@ -6,6 +6,7 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", mode = "brapi"){
   fn = paste0(id, ".rda")
   fp = lf[which(stringr::str_detect(lf, fn))]
   fp = fp[length(fp)] # use the latest entry TODO check the download tool
+  print(fp)
   #if(file.exists(stdy)) return(stdy)
 
   #fp = get_study_path(year, id)
@@ -16,7 +17,7 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", mode = "brapi"){
     }
   })
   if(is.null(stdy)){
-    if(can_internet() & !is.null(brapi)){
+    if(can_internet() ){
       stdy = brapi::study_table(id)
       saveRDS(stdy, fp)
     }
