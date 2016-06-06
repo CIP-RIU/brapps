@@ -57,7 +57,7 @@ fieldbook_analysisAddin <- function(fieldbook = NULL){
   ##################################
 
   server <- function(input, output, session) {
-    values <<- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
+    values <- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
     #brapi::locations(input, output, session)
 
     if(file.exists("brapi_session.rda")){

@@ -59,7 +59,7 @@ locationsAddin <- function(){
   ##################################
 
   server <- function(input, output, session) {
-    values <<- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
+    values <- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
 
     fp = file.path(fbglobal::get_base_dir("brapi"), "brapi_session.rda")
     if(file.exists(fp)){
