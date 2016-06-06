@@ -253,7 +253,7 @@ observeEvent(input$fbRepDo, {
                           incProgress(3/3)
                         })
     if(fmt == "html_document"){
-      html <- paste0("<a href='reports/report_anova.html' target='_blank'>WORD</a>")
+      html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
     }
     if(fmt == "word_document"){
       html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
