@@ -68,15 +68,18 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
 output$vcor_output = qtlcharts::iplotCorr_render({
-  req(input$fbaInput)
+  req(input$fbCorrVars)
   DF <- fbInput()
+  treat <- "germplasmName" #input$def_genotype
+  #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
+  trait = input$fbCorrVars
+  #print(length(trait))
+  if(length(trait) < 2) return(NULL)
+
   shiny::withProgress(message = 'Imputing missing values', {
     options(warn = -1)
 
-
-    treat <- "germplasmName" #input$def_genotype
-    trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
-    DF = DF[, c(treat, trait)]
+     DF = DF[, c(treat, trait)]
 
     DF[, treat] <- as.factor(DF[, treat])
 
@@ -91,23 +94,17 @@ output$vcor_output = qtlcharts::iplotCorr_render({
       utils::capture.output(
         DF <- randomForest::rfImpute(x = x, y = y )
       )
-      #data <- cbind(y, data)
-
     }
     names(DF)[1] <- treat
-
     DF = agricolae::tapply.stat(DF, DF[, treat])
     DF = DF[, -c(2)]
     names(DF)[1] = "Genotype"
     row.names(DF) = DF$Genotype
     DF = DF[, -c(1)]
-
-    # iplotCorr(DF,  reorder=TRUE,
-    #           chartOpts=list(cortitle="Correlation matrix",
-    #                          scattitle="Scatterplot"))
     options(warn = 0)
 
   })
+  #str(DF)
   iplotCorr(DF)
 })
 
@@ -201,21 +198,36 @@ output$fbRep <- shiny::renderUI({
 
                    incProgress(3/3)
                  })
-    #output$fb_report <- renderUI(HTML(html))
-    # print(report_dir)
-    # print(wd)
-    # print(report)
     html <- readLines(report)
     shiny::HTML(html)
 
 })
 
+get_traits_with_data <- reactive({
+  DF = fbInput()
+  ok = sapply(DF, function(x) sum(is.na(x))) / nrow(DF) < .1
+  ok = names(DF)[ok]
+  ok = ok[stringr::str_detect(ok, " ")]
+  ok
+})
 
-# output$fbRep <- renderUI({
-#   html <- readLines("/Users/reinhardsimon/Documents/packages/brapi/inst/apps/fieldbook_analysis/www/report_anova.html")
-#   HTML(html)
-# })
-#)
+#### Corr helper
+output$fbCorrVarsUI <- renderUI({
+  req(input$fbaInput)
+  trts = get_traits_with_data()
+  ci = input$hotFieldbook_columns_selected
+  DF = fbInput()
+  trt_sel = trts[length(trts)]
+  if(!is.null(ci)) {
+    trt_sel = names(DF)[ci]
+  } else
+  if(!(trt_sel %in% trts)){
+    trt_sel = trts[length(trts)]
+  }
+
+  selectizeInput("fbCorrVars", "Select a trait:", trts, selected = trt_sel, multiple = TRUE, width = "100%")
+
+})
 
 
 
