@@ -27,14 +27,14 @@ locations <- function(input, output, session){
 
   crop = "sweetpotato"
 
-  get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
-    bd = fbglobal::get_base_dir(mode = mode)
-    fp = file.path(bd, acrop, atype)
-    #print("get base data")
-    #rint(fp)
-    if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
-    fp
-  }
+  # get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
+  #   bd = fbglobal::get_base_dir(mode = mode)
+  #   fp = file.path(bd, acrop, atype)
+  #   #print("get base data")
+  #   #rint(fp)
+  #   if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
+  #   fp
+  # }
 
   return_null_with_msg <- function(msg){
     cat(msg)
@@ -205,20 +205,20 @@ locations <- function(input, output, session){
     locs[locs$latitude == click$lat & locs$longitude == click$lng, ]
   }
 
-  get_all_studies <- function(){
-    fp = file.path(get_base_data(atype = "fieldbook"), "fieldbooks.rda")
-    stds = NULL
-    try({
-      if(file.exists(fp)) {
-        stds = readRDS(file = fp)
-      }
-    })
-    if(is.null(stds)){
-      stds = brapi::studies()
-      saveRDS(stds, fp)
-    }
-    stds
-  }
+  # get_all_studies <- function(){
+  #   fp = file.path(get_base_data(atype = "fieldbook"), "fieldbooks.rda")
+  #   stds = NULL
+  #   try({
+  #     if(file.exists(fp)) {
+  #       stds = readRDS(file = fp)
+  #     }
+  #   })
+  #   if(is.null(stds)){
+  #     stds = brapi::studies()
+  #     saveRDS(stds, fp)
+  #   }
+  #   stds
+  # }
 
   get_study_path <- function(year, id){
     # if(can_internet()){
@@ -238,24 +238,24 @@ locations <- function(input, output, session){
     if(!dir.exists(dn)) dir.create(dn, recursive = TRUE)
     fp
   }
-
-  get_study <- function(year, id){
-
-    fp = get_study_path(year, id)
-    stdy = NULL
-    try({
-      if(file.exists(fp)) {
-        stdy = readRDS(file = fp)
-      }
-    })
-    if(is.null(stdy)){
-      if(can_internet() & !is.null(brapi)){
-        stdy = brapi::study_table(id)
-        saveRDS(stdy, fp)
-      }
-     }
-    stdy
-  }
+#
+#   get_study <- function(year, id){
+#
+#     fp = get_study_path(year, id)
+#     stdy = NULL
+#     try({
+#       if(file.exists(fp)) {
+#         stdy = readRDS(file = fp)
+#       }
+#     })
+#     if(is.null(stdy)){
+#       if(can_internet() & !is.null(brapi)){
+#         stdy = brapi::study_table(id)
+#         saveRDS(stdy, fp)
+#       }
+#      }
+#     stdy
+#   }
 
   get_trials_for_location <- function(){
     locs = get_geo_mark()
@@ -429,5 +429,5 @@ locations <- function(input, output, session){
       leaflet::addMarkers(lng = clng, lat = clat, layerId = "marked", icon = greenLeafIcon)
 
   })
-
+  #dat()
 }

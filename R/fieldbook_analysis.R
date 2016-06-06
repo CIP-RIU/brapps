@@ -26,13 +26,18 @@ fieldbook_analysis <- function(input, output, session){
       req(input$fbaInput)
       #fbId = dataInput()
       #print(fbId)
-      brapi::study_table(input$fbaInput)
-
+      #brapi::study_table(input$fbaInput)
+      get_study(id = input$fbaInput)
     })
 
     fbList <- reactive({
       shiny::withProgress(message = 'Gathering info ...', {
-      sts = brapi::studies()
+      if(brapi::can_internet()){
+        sts = brapi::studies()
+      } else {
+        sts <- get_all_studies() # to improve using demo as backfall
+      }
+
       sts[sts$studyType != "", ]
       })
     })

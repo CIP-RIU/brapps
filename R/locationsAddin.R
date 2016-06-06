@@ -70,8 +70,11 @@ locationsAddin <- function(){
     )
 
     locations(input, output, session)
+    #brapi_locations <<- locs
 
     shiny::observeEvent(input$done, {
+
+
       stopApp("Bye!")
     })
 
