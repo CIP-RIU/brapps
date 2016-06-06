@@ -30,7 +30,7 @@ fieldbook_analysis <- function(input, output, session, values){
       #fbId = dataInput()
       #print(fbId)
       #brapi::study_table(input$fbaInput)
-      get_study(id = input$fbaInput)
+      get_study(id = input$fbaInput, mode = mode, crop = crop)
     })
 
     fbList <- reactive({

@@ -272,7 +272,7 @@ locations <- function(input, output, session, values){
     # Download most recent trial for this location!
     if(can_internet()){
       ms = max(sid)
-      xs = stds[stds$studyDbId == ms, ]
+      #xs = stds[stds$studyDbId == ms, ]
       ss = get_study(year = stds$years[ms], id = ms, mode = mode, crop = crop)
     }
     sid
@@ -282,8 +282,8 @@ locations <- function(input, output, session, values){
   output$site_fieldtrials <- renderUI({
     html = msg_no_loc
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
-    print(mode)
-    print(crop)
+    #print(mode)
+    #print(crop)
     sid = get_trials_for_location(mode = mode, crop = crop)
     print(sid)
     if(is.null(sid)){
