@@ -59,6 +59,7 @@ locationsAddin <- function(){
   ##################################
 
   server <- function(input, output, session) {
+    values <<- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
 
     fp = file.path(fbglobal::get_base_dir("brapi"), "brapi_session.rda")
     if(file.exists(fp)){
@@ -69,7 +70,8 @@ locationsAddin <- function(){
       stopApp("Please connect to a database.")
     )
 
-    locations(input, output, session)
+
+    locations(input, output, session, values)
     #brapi_locations <<- locs
 
     shiny::observeEvent(input$done, {

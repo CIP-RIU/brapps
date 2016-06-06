@@ -8,6 +8,7 @@
 #' @return string message
 #' @export
 fieldbook_analysisAddin <- function(fieldbook = NULL){
+
   if(is.null(fieldbook)){
     #print("no fieldbook passed in!")
   }
@@ -56,13 +57,14 @@ fieldbook_analysisAddin <- function(fieldbook = NULL){
   ##################################
 
   server <- function(input, output, session) {
+    values <<- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
     #brapi::locations(input, output, session)
 
     if(file.exists("brapi_session.rda")){
       load("brapi_session.rda")
     }
 
-    brapps::fieldbook_analysis(input, output, session)
+    brapps::fieldbook_analysis(input, output, session, values)
 
     observeEvent(input$done, {
 
