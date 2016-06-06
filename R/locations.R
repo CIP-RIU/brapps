@@ -4,14 +4,16 @@
 #' @param input shiny
 #' @param output shiyn
 #' @param session shiny
+#' @param values shiny
 #' @import shiny
 #' @importFrom magrittr '%>%'
 #' @importFrom brapi can_internet
 #' @author Reinhard Simon
 # @return data.frame
 #' @export
-locations <- function(input, output, session){
+locations <- function(input, output, session, values){
 
+  crop = isolate(values$crop)
   msg_no_loc = "No location selected."
 
   url = system.file("images", package = "brapps")
@@ -25,7 +27,7 @@ locations <- function(input, output, session){
     shadowAnchorX = 4, shadowAnchorY = 62
   )
 
-  crop = "sweetpotato"
+
 
   # get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
   #   bd = fbglobal::get_base_dir(mode = mode)

@@ -383,6 +383,9 @@ ui <- dashboardPage(skin = "yellow",
 ############################################################
 
 sv <- function(input, output, session) ({
+  values <- shiny::reactiveValues(crop = "sweetpotato")
+
+
   brapi_con("sweetpotato", "http://sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu",
             80, "rsimon16",
             "sweetpotato")
@@ -391,7 +394,7 @@ sv <- function(input, output, session) ({
 
   brapps::fieldbook_analysis(input, output, session)
 
-  brapps::locations(input, output, session)
+  brapps::locations(input, output, session, values)
 
   # observe({
   #   # Re-execute this reactive expression after 1000 milliseconds
