@@ -141,67 +141,6 @@ output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
 #####################
 
 #observeEvent(input$butDoPhAnalysis, ({
-output$fbRep <- shiny::renderUI({
-    DF <- fbInput()
-    #y <- input$def_variables
-    yn = names(DF)[c(7:ncol(DF))]
-    report =  "report_anova.Rmd"
-    report_dir = system.file("apps/hdtest/reports", package = "brapps")
-    #report_dir <- file.path(getwd(),"inst", "rmd") # for quicker testing
-    wd = getwd()
-    #result_dir  = file.path(wd, "www", "reports")
-    #result_dir  =  system.file("app/www/reports", package = "hidap")
-    result_dir = tempdir()
-    usr = Sys.getenv("USERNAME")
-    if (usr=="") usr = Sys.getenv("USER")
-    author =  paste0(usr, " using HIDAP")
-
-    rps = "REP" # input$def_rep
-    gtp = "germplasmName" #input$def_genotype
-    # xmt = attr(DF, "meta")
-    # xmt = list(xmt, title = xmt$studyName)
-    xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
-
-    writeLines(file.path(wd, "www"), con="log.txt")
-
-    shiny::withProgress(message = "Creating report ...",
-                 detail = "This may take a while ...", value = 0,{
-                   try({
-                     withr::with_dir(report_dir, {
-                       #print("X")
-                       rmarkdown::render(report,
-                                         output_format = c("pdf_document", "word_document",
-                                                           "html_document" )
-                                         ,
-                                         output_dir = file.path(wd, "www"),
-                                         params = list(
-                                           meta = xmt,
-                                           trait = yn,
-                                           treat = gtp,
-                                           rep  = rps,
-                                           data = DF,
-                                           maxp = 0.1,
-                                           author = author,
-                                           host = brapi$db
-                                         ))
-                       #print("Y")
-                     }) # in_dir
-                     incProgress(1/3)
-                   }) # try
-
-                   try({
-                     report_html = stringr::str_replace(report, ".Rmd", ".html")
-                   })
-                   output$fb_report <- renderUI("")
-                   report = file.path(wd, "www", report_html)
-
-
-                   incProgress(3/3)
-                 })
-    html <- readLines(report)
-    shiny::HTML(html)
-
-})
 
 get_traits_with_data <- reactive({
   DF = fbInput()
@@ -211,8 +150,7 @@ get_traits_with_data <- reactive({
   ok
 })
 
-#### Corr helper
-output$fbCorrVarsUI <- renderUI({
+get_traits_choice <- reactive({
   req(input$fbaInput)
   trts = get_traits_with_data()
   ci = input$hotFieldbook_columns_selected
@@ -221,14 +159,113 @@ output$fbCorrVarsUI <- renderUI({
   if(!is.null(ci)) {
     trt_sel = names(DF)[ci]
   } else
-  if(!(trt_sel %in% trts)){
-    trt_sel = trts[length(trts)]
-  }
-
-  selectizeInput("fbCorrVars", "Select a trait:", trts, selected = trt_sel, multiple = TRUE, width = "100%")
-
+    if(!(trt_sel %in% trts)){
+      trt_sel = trts[length(trts)]
+    }
+  list(trts = trts, trt_sel = trt_sel)
 })
 
+#### Corr helper
+output$fbCorrVarsUI <- renderUI({
+   tc = get_traits_choice()
+   selectizeInput("fbCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
+                  multiple = TRUE, width = "100%")
+})
+
+output$aovVarsUI <- renderUI({
+  tc = get_traits_choice()
+  selectizeInput("aovVars", "Select trait(s):", tc$trts, selected = tc$trt_sel,
+                 multiple = TRUE, width = "100%")
+})
+
+observeEvent(input$fbRepDo, {
+  output$fbRep <- shiny::renderUI({
+    DF <- fbInput()
+    fmt <- paste0(tolower(input$aovFormat), "_document")
+    ext <- paste0(".", tolower(input$aovFormat))
+    #y <- input$def_variables
+    print(fmt)
+    yn = input$aovVars #names(DF)[c(7:ncol(DF))]
+    print(yn)
+    rep_name = "report_anova.Rmd"
+    #tgt = file.path(getwd(), "reports", rep_name)
+    report <- file.path(getwd(), "reports", rep_name)
+    dn = dirname(report)
+    if(!dir.exists(dn)) {
+      dir.create(report)
+    }
+    if(!file.exists(report)){
+
+      org = system.file("/apps/hdtest/reports/report_anova.Rmd", package = "brapps")
+
+      file.copy(org, report)
+    }
+
+
+    #report =  "report_anova.Rmd"
+    #report_dir = system.file("apps/hdtest/reports", package = "brapps")
+
+    #report_dir <- file.path(getwd(),"inst", "rmd") # for quicker testing
+    #wd = getwd()
+    #result_dir  = file.path(wd, "www", "reports")
+    #result_dir  =  system.file("app/www/reports", package = "hidap")
+    #result_dir = tempdir()
+    # usr = Sys.getenv("USERNAME")
+    # if (usr=="") usr = Sys.getenv("USER")
+    # author =  paste0(usr, " using HIDAP")
+
+    rps = "REP" # input$def_rep
+    gtp = "germplasmName" #input$def_genotype
+    # xmt = attr(DF, "meta")
+    # xmt = list(xmt, title = xmt$studyName)
+    xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
+
+    writeLines(file.path("www"), con="log.txt")
+    author = "HIDAP"
+
+    shiny::withProgress(message = "Creating report ...",
+                        detail = "This may take a while ...", value = 0,{
+                          try({
+                            #withr::with_dir(report_dir, {
+                              #print("X")
+                              fn <- rmarkdown::render(report,
+                                                output_format = fmt,
+                                                output_dir = file.path("www", "reports"),
+                                                params = list(
+                                                  meta = xmt,
+                                                  trait = yn,
+                                                  treat = gtp,
+                                                  rep  = rps,
+                                                  data = DF,
+                                                  maxp = 0.1,
+                                                  author = author,
+                                                  host = brapi$db
+                                                ))
+                              #print("Y")
+                            #}) # in_dir
+                            incProgress(1/3)
+                          }) # try
+
+                          # try({
+                          #   report_html = stringr::str_replace(report, ".Rmd", ext)
+                          # })
+                          output$fb_report <- renderUI("")
+                          incProgress(3/3)
+                        })
+    if(fmt == "html_document"){
+      html <- paste0("<a href='reports/report_anova.html' target='_blank'>WORD</a>")
+    }
+    if(fmt == "word_document"){
+      html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
+    }
+    if(fmt == "pdf_document"){
+      html <- paste0("<a href='reports/report_anova.pdf' target='_blank'>PDF</a>")
+    }
+
+    HTML(html)
+  })
+
+})
 
 
 }

@@ -30,6 +30,7 @@ fieldbook_analysisAddin <- function(fieldbook = NULL){
                        ),
                        miniUI::miniTabPanel("Correlations", icon = icon("line-chart"),
                                             miniUI::miniContentPanel(padding = 0,
+                                                                     uiOutput("fbCorrVarsUI"),
                                       qtlcharts::iplotCorr_output("vcor_output")
                                     )
                        )

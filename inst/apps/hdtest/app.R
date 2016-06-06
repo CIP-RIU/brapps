@@ -133,28 +133,34 @@ ui <- dashboardPage(skin = "yellow",
                                                 tabPanel("Map",
                                                          d3heatmap::d3heatmapOutput("fieldbook_heatmap")
                                                 )
-                                                #,
-                                                # tabPanel(title = "Report",
-                                                #     tabBox(id = "tabAnalaysisReports", width = NULL,
-                                                #       tabPanel("HTML report",
-                                                #                htmlOutput("fbRepHtml")
-                                                #                )
-                                                #       ,
-                                                #       tabPanel("Word report",
-                                                #                htmlOutput("fbRepWord")
-                                                #       ),
-                                                #       # tabPanel("PDF report",
-                                                #       #          htmlOutput("fbRepPdf")
-                                                #       # ),
-                                                #       HTML("<div style='display:none'>"),
-                                                #       shinyURL.ui(label = "",width=0, copyURL = F, tinyURL = F),
-                                                #       #shinyURL.ui("URL", tinyURL = F)
-                                                #       HTML("</div>")
-                                                #
-                                                #       )
-                                                #
-                                                #
-                                                # )
+                                                ,
+                                                tabPanel(title = "Report",
+
+                                                      radioButtons("aovFormat","Report format",
+                                                                   c("HTML", "WORD", "PDF"),
+                                                                   inline = TRUE),
+                                                      uiOutput("aovVarsUI"),
+                                                      actionButton("fbRepDo", "Create report!"),
+                                                      uiOutput("fbRep"),
+                                                      # tabPanel("HTML report",
+                                                      #          htmlOutput("fbRepHtml")
+                                                      #          )
+                                                      # ,
+                                                      # tabPanel("Word report",
+                                                      #          htmlOutput("fbRepWord")
+                                                      # ),
+                                                      # tabPanel("PDF report",
+                                                      #          htmlOutput("fbRepPdf")
+                                                      # ),
+                                                      HTML("<div style='display:none'>"),
+                                                      shinyURL.ui(label = "",width=0, copyURL = F, tinyURL = F),
+                                                      #shinyURL.ui("URL", tinyURL = F)
+                                                      HTML("</div>")
+
+
+
+
+                                                )
 
 
 
