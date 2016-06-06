@@ -9,10 +9,9 @@ library(dplyr)
 library(withr)
 library(DT)
 
-crop = "sweetpotato"
 
 brapi_host = "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu"
-globalVariables(c("values", "crop", "mode"))
+#globalVariables(c("values", "crop", "mode"))
 
 get_plain_host <- function(){
   host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]
@@ -384,8 +383,8 @@ ui <- dashboardPage(skin = "yellow",
 ############################################################
 
 sv <- function(input, output, session) ({
-  values <<- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
 
+  values <<- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
 
   brapi_con("sweetpotato", "http://sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu",
             80, "rsimon16",
@@ -393,15 +392,10 @@ sv <- function(input, output, session) ({
 
   shinyURL.server()
 
-  brapps::fieldbook_analysis(input, output, session)
+  brapps::fieldbook_analysis(input, output, session, values)
 
   brapps::locations(input, output, session, values)
 
-  # observe({
-  #   # Re-execute this reactive expression after 1000 milliseconds
-  #   invalidateLater(1000, session)
-  #   unlink(get_base_data(atype = "location"), recursive = TRUE)
-  # })
 
 })
 

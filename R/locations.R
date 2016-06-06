@@ -15,6 +15,7 @@ locations <- function(input, output, session, values){
 
   crop = isolate(values$crop)
   mode = isolate(values$mode)
+
   msg_no_loc = "No location selected."
 
   url = system.file("images", package = "brapps")
@@ -223,24 +224,24 @@ locations <- function(input, output, session, values){
   #   stds
   # }
 
-  get_study_path <- function(year, id){
-    # if(can_internet()){
-    #   mode = "brapi"
-    # } else {
-    #   mode = "Demo"
-    # }
-    mode = "brapi"
-    if(is.null(year)){
-      fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), paste0(id,".rda"))
-    }
-    if(!is.null(year)){
-      fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), year, paste0(id, ".rda"))
-    }
-    dn = dirname(fp)
-    #print(dn)
-    if(!dir.exists(dn)) dir.create(dn, recursive = TRUE)
-    fp
-  }
+  # get_study_path <- function(year, id, mode = mode, crop = crop){
+  #   # if(can_internet()){
+  #   #   mode = "brapi"
+  #   # } else {
+  #   #   mode = "Demo"
+  #   # }
+  #   ##mode = "brapi"
+  #   if(is.null(year)){
+  #     fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), paste0(id,".rda"))
+  #   }
+  #   if(!is.null(year)){
+  #     fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), year, paste0(id, ".rda"))
+  #   }
+  #   dn = dirname(fp)
+  #   #print(dn)
+  #   if(!dir.exists(dn)) dir.create(dn, recursive = TRUE)
+  #   fp
+  # }
 #
 #   get_study <- function(year, id){
 #
@@ -260,11 +261,11 @@ locations <- function(input, output, session, values){
 #     stdy
 #   }
 
-  get_trials_for_location <- function(){
+  get_trials_for_location <- function(mode, crop){
     locs = get_geo_mark()
     if(is.null(locs)) return(NULL)
 
-    stds = get_all_studies()
+    stds = get_all_studies(mode = mode, crop = crop)
     stds <- stds[!is.na(stds$locationDbId), ]
     sid = stds[stds$locationDbId %in% locs$locationDbId, "studyDbId"]
 
@@ -272,7 +273,7 @@ locations <- function(input, output, session, values){
     if(can_internet()){
       ms = max(sid)
       xs = stds[stds$studyDbId == ms, ]
-      ss = get_study(stds$years[ms], ms)
+      ss = get_study(year = stds$years[ms], id = ms, mode = mode, crop = crop)
     }
     sid
   }
@@ -281,8 +282,10 @@ locations <- function(input, output, session, values){
   output$site_fieldtrials <- renderUI({
     html = msg_no_loc
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
-    sid = get_trials_for_location()
-    #print(sid)
+    print(mode)
+    print(crop)
+    sid = get_trials_for_location(mode = mode, crop = crop)
+    print(sid)
     if(is.null(sid)){
       out = msg_no_loc
     } else {
@@ -290,7 +293,7 @@ locations <- function(input, output, session, values){
 
     if(length(sid) > 0){
 
-      stds = get_all_studies()
+      stds = get_all_studies(mode = mode, crop = crop)
       stds = stds[stds$studyDbId %in% sid, ]
 
       txt = paste0("No internet connected!<br/>")
@@ -335,14 +338,14 @@ locations <- function(input, output, session, values){
     #if(!can_internet()) return("No internet connected!")
     #if(!is.null(get_geo_mark())){
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
-      sid = get_trials_for_location()
+      sid = get_trials_for_location(mode, crop)
       #print(paste("geno/site",sid))
       if(is.null(sid)){
         out = msg_no_loc
       } else {
       #print(sid)
       year = NULL
-      stds = get_all_studies()
+      stds = get_all_studies(mode = mode, crop = crop)
 
       #ms = NULL
       if(length(sid) > 1){

@@ -15,6 +15,8 @@
 # @return data.frame
 #' @export
 fieldbook_analysis <- function(input, output, session, values){
+  crop = isolate(values$crop)
+  mode = isolate(values$mode)
 
   brapi_host = brapi$db
 
@@ -200,9 +202,9 @@ output$fbRep <- shiny::renderUI({
                    incProgress(3/3)
                  })
     #output$fb_report <- renderUI(HTML(html))
-    print(report_dir)
-    print(wd)
-    print(report)
+    # print(report_dir)
+    # print(wd)
+    # print(report)
     html <- readLines(report)
     shiny::HTML(html)
 
