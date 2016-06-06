@@ -3,3 +3,4 @@
 ^brapi_session\.rda$
 ^xdata
 ^inst/apps/hdtest/www
+^log\.txt

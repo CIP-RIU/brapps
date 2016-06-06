@@ -136,12 +136,16 @@ ui <- dashboardPage(skin = "yellow",
                                                 ,
                                                 tabPanel(title = "Report",
 
+                                                      uiOutput("aovVarsUI"),
+
                                                       radioButtons("aovFormat","Report format",
                                                                    c("HTML", "WORD", "PDF"),
                                                                    inline = TRUE),
-                                                      uiOutput("aovVarsUI"),
+
                                                       actionButton("fbRepDo", "Create report!"),
+                                                      HTML("<center>"),
                                                       uiOutput("fbRep"),
+                                                      HTML("</center>"),
                                                       # tabPanel("HTML report",
                                                       #          htmlOutput("fbRepHtml")
                                                       #          )
