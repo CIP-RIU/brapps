@@ -4,6 +4,7 @@
 #' @param input shiny
 #' @param output shiny
 #' @param session shiny
+#' @param values shiny
 # @import rhandsontable
 #' @import d3heatmap
 #' @import qtlcharts
@@ -13,7 +14,7 @@
 #' @importFrom utils read.csv
 # @return data.frame
 #' @export
-fieldbook_analysis <- function(input, output, session){
+fieldbook_analysis <- function(input, output, session, values){
 
   brapi_host = brapi$db
 
@@ -182,7 +183,8 @@ output$fbRep <- shiny::renderUI({
                                            data = DF,
                                            maxp = 0.1,
                                            author = author,
-                                           host = get_plain_host()))
+                                           host = brapi$db
+                                         ))
                        #print("Y")
                      }) # in_dir
                      incProgress(1/3)

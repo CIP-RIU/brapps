@@ -4,7 +4,7 @@
 \alias{locations}
 \title{locations}
 \usage{
-locations(input, output, session)
+locations(input, output, session, values)
 }
 \arguments{
 \item{input}{shiny}
@@ -12,6 +12,8 @@ locations(input, output, session)
 \item{output}{shiyn}
 
 \item{session}{shiny}
+
+\item{values}{shiny}
 }
 \description{
 locations
