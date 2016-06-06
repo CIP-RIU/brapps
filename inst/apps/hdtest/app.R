@@ -9,6 +9,8 @@ library(dplyr)
 library(withr)
 library(DT)
 
+crop = "sweetpotato"
+
 brapi_host = "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu"
 
 get_plain_host <- function(){

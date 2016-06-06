@@ -41,7 +41,7 @@ locations <- function(input, output, session){
     return(NULL)
   }
 
-  fp = file.path(get_base_data(atype = "location"), "locations.rda")
+  fp = file.path(get_base_data(atype = "location", acrop = crop), "locations.rda")
 
   locationData <- reactiveFileReader(10000, session, fp, readRDS)
 
@@ -228,10 +228,10 @@ locations <- function(input, output, session){
     # }
     mode = "brapi"
     if(is.null(year)){
-      fp = file.path(get_base_data(atype = "fieldbook", mode = mode), paste0(id,".rda"))
+      fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), paste0(id,".rda"))
     }
     if(!is.null(year)){
-      fp = file.path(get_base_data(atype = "fieldbook", mode = mode), year, paste0(id, ".rda"))
+      fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), year, paste0(id, ".rda"))
     }
     dn = dirname(fp)
     #print(dn)
