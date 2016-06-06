@@ -1,8 +1,5 @@
 
-get_study <- function(year = NULL, id){
-
-  crop = isolate(values$crop)
-  mode = isolate(values$mode)
+get_study <- function(year = NULL, id, crop = "sweetpotato", mode = "brapi"){
 
   bd = get_base_data(acrop = crop, mode = mode)
   lf = list.files(bd, recursive =  TRUE, full.names = TRUE)

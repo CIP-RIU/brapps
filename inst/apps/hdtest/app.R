@@ -12,6 +12,7 @@ library(DT)
 crop = "sweetpotato"
 
 brapi_host = "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu"
+globalVariables(c("values", "crop", "mode"))
 
 get_plain_host <- function(){
   host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]

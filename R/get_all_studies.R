@@ -1,6 +1,6 @@
-get_all_studies <- function(){
-  crop = isolate(values$crop)
-  mode = isolate(values$mode)
+get_all_studies <- function(mode = "brapi", crop = "sweetpotato"){
+  #globalVariables(c("values", "crop", "mode"))
+
   fp = file.path(get_base_data(atype = "fieldbook",
                                acrop = crop,
                                mode = mode),

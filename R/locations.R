@@ -14,6 +14,7 @@
 locations <- function(input, output, session, values){
 
   crop = isolate(values$crop)
+  mode = isolate(values$mode)
   msg_no_loc = "No location selected."
 
   url = system.file("images", package = "brapps")
