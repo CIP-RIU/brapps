@@ -1,7 +1,10 @@
 
 get_study <- function(year = NULL, id){
 
-  bd = get_base_data(acrop = crop)
+  crop = isolate(values$crop)
+  mode = isolate(values$mode)
+
+  bd = get_base_data(acrop = crop, mode = mode)
   lf = list.files(bd, recursive =  TRUE, full.names = TRUE)
   fn = paste0(id, ".rda")
   fp = lf[which(stringr::str_detect(lf, fn))]

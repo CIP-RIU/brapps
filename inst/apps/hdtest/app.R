@@ -383,7 +383,7 @@ ui <- dashboardPage(skin = "yellow",
 ############################################################
 
 sv <- function(input, output, session) ({
-  values <- shiny::reactiveValues(crop = "sweetpotato")
+  values <<- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
 
 
   brapi_con("sweetpotato", "http://sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu",

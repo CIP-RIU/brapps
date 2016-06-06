@@ -1,5 +1,10 @@
 get_all_studies <- function(){
-  fp = file.path(get_base_data(atype = "fieldbook"), "fieldbooks.rda")
+  crop = isolate(values$crop)
+  mode = isolate(values$mode)
+  fp = file.path(get_base_data(atype = "fieldbook",
+                               acrop = crop,
+                               mode = mode),
+                 "fieldbooks.rda")
   stds = NULL
   try({
     if(file.exists(fp)) {
