@@ -20,7 +20,8 @@ fieldbook_analysisAddin <- function(fieldbook = NULL){
                                miniUI::miniTabPanel("Parameters", icon = icon("list-alt"),
                                                     miniUI::miniContentPanel(padding = 0,
                                       #fieldbook_analysisInput("fb")
-                                      shiny::numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999)
+                                      #shiny::numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999)
+                                      uiOutput("fbList")
                                     )
                        ),
                        miniUI::miniTabPanel("Data", icon = icon("table"),
@@ -48,7 +49,16 @@ fieldbook_analysisAddin <- function(fieldbook = NULL){
                        miniUI::miniTabPanel("Fieldbook report", icon = icon("book"),
                                             miniUI::miniContentPanel(padding = 0
                                                      ,
-                                                     shiny::uiOutput("fbRep")
+                                                     uiOutput("aovVarsUI"),
+
+                                                     radioButtons("aovFormat","Report format",
+                                                                  c("HTML", "WORD", "PDF"),
+                                                                  inline = TRUE),
+
+                                                     actionButton("fbRepDo", "Create report!"),
+                                                     HTML("<center>"),
+                                                     uiOutput("fbRep"),
+                                                     HTML("</center>")
                                     )
                        )
     )
@@ -71,13 +81,14 @@ fieldbook_analysisAddin <- function(fieldbook = NULL){
 
       hidap_fieldbook <<- brapi::study_table(input$fbaInput)
 
-      msg = c("The fieldbook is available in your session",
-              "through the variable:",
-              "",
-             "'hidap_fieldbook' (see the metadata for details)!",
-             "",
-             attr(hidap_fieldbook, "meta")$studyName,
-             "",
+      msg = c(
+             #  "The fieldbook is available in your session",
+             #  "through the variable:",
+             #  "",
+             # "'hidap_fieldbook' (see the metadata for details)!",
+             # "",
+             # attr(hidap_fieldbook, "meta")$studyName,
+             # "",
              "Bye!"
       )
 
