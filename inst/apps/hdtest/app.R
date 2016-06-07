@@ -146,16 +146,7 @@ ui <- dashboardPage(skin = "yellow",
                                                       HTML("<center>"),
                                                       uiOutput("fbRep"),
                                                       HTML("</center>"),
-                                                      # tabPanel("HTML report",
-                                                      #          htmlOutput("fbRepHtml")
-                                                      #          )
-                                                      # ,
-                                                      # tabPanel("Word report",
-                                                      #          htmlOutput("fbRepWord")
-                                                      # ),
-                                                      # tabPanel("PDF report",
-                                                      #          htmlOutput("fbRepPdf")
-                                                      # ),
+
                                                       HTML("<div style='display:none'>"),
                                                       shinyURL.ui(label = "",width=0, copyURL = F, tinyURL = F),
                                                       #shinyURL.ui("URL", tinyURL = F)

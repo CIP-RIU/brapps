@@ -189,17 +189,17 @@ observeEvent(input$fbRepDo, {
     print(yn)
     rep_name = "report_anova.Rmd"
     #tgt = file.path(getwd(), "reports", rep_name)
-    report <- file.path(getwd(), "reports", rep_name)
+    report <- file.path("reports", rep_name)
     dn = dirname(report)
     if(!dir.exists(dn)) {
       dir.create(report)
     }
-    if(!file.exists(report)){
-
-      org = system.file("/apps/hdtest/reports/report_anova.Rmd", package = "brapps")
-
-      file.copy(org, report)
-    }
+    # if(!file.exists(report)){
+    #
+    #   org = system.file(paste0("/apps/hdtest/reports/",rep_name), package = "brapps")
+    #
+    #   file.copy(org, report)
+    # }
 
 
     #report =  "report_anova.Rmd"
@@ -220,15 +220,15 @@ observeEvent(input$fbRepDo, {
     # xmt = list(xmt, title = xmt$studyName)
     xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
 
-    writeLines(file.path("www"), con="log.txt")
+    #writeLines(file.path("www"), con="log.txt")
     author = "HIDAP"
+    unlink("www/reports/*.*")
 
-    shiny::withProgress(message = "Creating report ...",
+    fn <- shiny::withProgress(message = "Creating report ...",
                         detail = "This may take a while ...", value = 0,{
                           try({
-                            #withr::with_dir(report_dir, {
-                              #print("X")
-                              fn <- rmarkdown::render(report,
+
+                              rmarkdown::render(report,
                                                 output_format = fmt,
                                                 output_dir = file.path("www", "reports"),
                                                 params = list(
@@ -249,9 +249,10 @@ observeEvent(input$fbRepDo, {
                           # try({
                           #   report_html = stringr::str_replace(report, ".Rmd", ext)
                           # })
-                          output$fb_report <- renderUI("")
+                          #output$fb_report <- renderUI("")
                           incProgress(3/3)
                         })
+    print(fn)
     if(fmt == "html_document"){
       html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
     }

@@ -9,8 +9,8 @@ Depends:
 Imports:
     brapi, agricolae, d3heatmap, httr, magrittr, qtl, qtlcharts, shiny,
     DT, fbmaterials, htmlTable, leaflet, miniUI, randomForest, rmarkdown,
-    stringr, withr, shinyFiles, readxl, fbglobal, rstudioapi
-Remotes: c5sire/brapi, c5sire/fbmaterials, c5sire/shinyFiles, c5sire/fbglobal
+    stringr, withr, shinyFiles, readxl, fbglobal, rstudioapi, st4gi
+Remotes: c5sire/brapi, c5sire/fbmaterials, c5sire/shinyFiles, c5sire/fbglobal, c5sire/st4gi
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

@@ -65,15 +65,6 @@ This trial has the identifier `r meta$title`. It was conducted under the supervi
 
 
 # Materials and Methods
-## Location characterization
-### Installation
-### Geographic and climate characterization
-### Weather during planting season
-### Soil
-### Field management
-### Observations on special events
-## Materials
-## Trait descriptions (from ontology)
 ## Model specification and data description
 
 There is data from `r length(unique(data[, treat]))` treatments, evaluated using a randomize complete block design with `r unique(data[, rep])` blocks. The statistical model is
@@ -187,20 +178,9 @@ Valid traits: **`r paste(names(dat)[-c(1,2)])`**.
 out <- NULL
 for (k in 1:length(trts)) {
    lc <- st4gi::checkdata01(trts[k], treat, rep, tbl)
-   out <- c(out, knit_expand('child_rcbd2.Rmd'))
+   out <- c(out, knit_expand('child_rcbd2_old.Rmd'))
 }
 ```
 
 `r paste(knit(text = out), collapse = '\n')`
 
-## Trait correlations
-
-## Variety candidate selection
-
-# Summary
-
-# References
-
-## Data sources
-
-## Literature
