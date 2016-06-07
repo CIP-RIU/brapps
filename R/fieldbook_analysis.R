@@ -194,25 +194,6 @@ observeEvent(input$fbRepDo, {
     if(!dir.exists(dn)) {
       dir.create(report)
     }
-    # if(!file.exists(report)){
-    #
-    #   org = system.file(paste0("/apps/hdtest/reports/",rep_name), package = "brapps")
-    #
-    #   file.copy(org, report)
-    # }
-
-
-    #report =  "report_anova.Rmd"
-    #report_dir = system.file("apps/hdtest/reports", package = "brapps")
-
-    #report_dir <- file.path(getwd(),"inst", "rmd") # for quicker testing
-    #wd = getwd()
-    #result_dir  = file.path(wd, "www", "reports")
-    #result_dir  =  system.file("app/www/reports", package = "hidap")
-    #result_dir = tempdir()
-    # usr = Sys.getenv("USERNAME")
-    # if (usr=="") usr = Sys.getenv("USER")
-    # author =  paste0(usr, " using HIDAP")
 
     rps = "REP" # input$def_rep
     gtp = "germplasmName" #input$def_genotype
@@ -246,15 +227,16 @@ observeEvent(input$fbRepDo, {
                             incProgress(1/3)
                           }) # try
 
-                          # try({
-                          #   report_html = stringr::str_replace(report, ".Rmd", ext)
-                          # })
-                          #output$fb_report <- renderUI("")
                           incProgress(3/3)
                         })
-    print(fn)
+    #print(fn)
+
+
     if(fmt == "html_document"){
       html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
+      if(!file.exists("reports/report_anova.html")) {
+        html <- paste0("<a href='reports/no_report.html' target='_blank'>HTML</a>")
+      }
     }
     if(fmt == "word_document"){
       html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
