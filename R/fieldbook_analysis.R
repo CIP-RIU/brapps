@@ -234,9 +234,9 @@ observeEvent(input$fbRepDo, {
 
     if(fmt == "html_document"){
       html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
-      if(!file.exists("reports/report_anova.html")) {
-        html <- paste0("<a href='reports/no_report.html' target='_blank'>HTML</a>")
-      }
+      # if(!file.exists("reports/report_anova.html")) {
+      #   html <- paste0("<a href='reports/no_report.html' target='_blank'>HTML</a>")
+      # }
     }
     if(fmt == "word_document"){
       html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
