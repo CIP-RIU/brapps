@@ -9,6 +9,65 @@ library(dplyr)
 library(withr)
 library(DT)
 
+env_dashboard <- function(){
+
+  tabItem(tabName = "env_dashboard",
+          fluidRow(
+            column(width = 8
+                   ,
+                   tabBox(width = NULL, id = "tabLocation",
+                          tabPanel("Map",
+                                   leafletOutput("mapLocs")
+                          )
+                          ,
+                          tabPanel("Report",
+                                   htmlOutput("rep_loc")
+                                   #HTML("<h1>Under development!</h1>")
+                          )
+                   )
+            )
+            ,
+            column(width = 4,
+                   tabBox(width = NULL, title = "Site"
+                          ,
+                          tabPanel("Histogram",
+                                   plotOutput("histogram")
+                          )
+                          ,
+                          tabPanel("Info",
+                                   htmlOutput("siteInfo")
+                          )
+                          ,
+                          tabPanel("Fieldtrials",
+                                   htmlOutput("site_fieldtrials")
+                          )
+                          # TODOD
+                          ,
+                          tabPanel("Genotypes",
+                                   htmlOutput("site_genotypes")
+                          )
+
+                   )
+            )
+          ),
+
+
+          fluidRow(
+            column(width = 8
+                   ,
+                   box(width = NULL,
+                       title = "Location table"
+                       ,
+                       #p(class = 'text-center', downloadButton('locsDL', 'Download Filtered Data')),
+                       DT::dataTableOutput("tableLocs")
+                       #locationsUI("location")
+                   )
+            )
+          )
+  )
+
+}
+
 
 brapi_host = "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu"
 #globalVariables(c("values", "crop", "mode"))
@@ -37,8 +96,8 @@ ui <- dashboardPage(skin = "yellow",
                         menuItem("Phenotype", icon = icon("leaf"),
                                  menuSubItem("Analysis",
                                              tabName = "phe_dashboard", icon = icon("calculator"))
-                                 ,
-                                 uiOutput("fbList")
+
+
                                  #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999)
 
 
@@ -52,65 +111,14 @@ ui <- dashboardPage(skin = "yellow",
                     dashboardBody(
                       #tags$head(tags$style(HTML(mycss))),
                       tabItems(
-                        tabItem(tabName = "env_dashboard",
-                                fluidRow(
-                                  column(width = 8
-                                          ,
-                                   tabBox(width = NULL, id = "tabLocation",
-                                          tabPanel("Map",
-                                                   leafletOutput("mapLocs")
-                                          )
-                                          ,
-                                          tabPanel("Report",
-                                                   htmlOutput("rep_loc")
-                                                   #HTML("<h1>Under development!</h1>")
-                                          )
-                                   )
-                                  )
-                                  ,
-                                  column(width = 4,
-                                         tabBox(width = NULL, title = "Site"
-                                                ,
-                                                tabPanel("Histogram",
-                                                         plotOutput("histogram")
-                                                )
-                                                ,
-                                                tabPanel("Info",
-                                                         htmlOutput("siteInfo")
-                                                )
-                                                ,
-                                                tabPanel("Fieldtrials",
-                                                            htmlOutput("site_fieldtrials")
-                                                )
-                                                # TODOD
-                                                ,
-                                                tabPanel("Genotypes",
-                                                         htmlOutput("site_genotypes")
-                                                )
-
-                                         )
-                                  )
-                                ),
-
-
-                                fluidRow(
-                                  column(width = 8
-                                         ,
-                                         box(width = NULL,
-                                             title = "Location table"
-                                             ,
-                                             #p(class = 'text-center', downloadButton('locsDL', 'Download Filtered Data')),
-                                             DT::dataTableOutput("tableLocs")
-                                             #locationsUI("location")
-                                         )
-                                  )
-                                )
-                        ),
+                        env_dashboard()
+                        ,
                         tabItem(tabName = "phe_dashboard",
                                 fluidRow(
                                   column(width = 12,
                                          box(width = NULL, collapsible = TRUE,
                                              title = "Fieldbook",
+                                             uiOutput("fbList"),
                                              DT::dataTableOutput("hotFieldbook")
                                              #locationsUI("location")
                                          )
@@ -177,10 +185,11 @@ sv <- function(input, output, session) ({
 
   values <- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
 
+  try({
   brapi_con("sweetpotato", "http://sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu",
             80, "rsimon16",
             "sweetpotato")
-
+  })
   shinyURL.server()
 
   brapps::fieldbook_analysis(input, output, session, values)

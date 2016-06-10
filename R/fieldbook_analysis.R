@@ -256,7 +256,7 @@ observeEvent(input$fbRepoDo, {
   output$fbRep <- shiny::renderUI({
     #print("step 1")
     DF <- fbInput()
-    traits = input$aovVars
+    trait = input$aovVars
 
     treat <- "germplasmName" #input$def_genotype
     #trait = input$fbCorrVars
@@ -284,16 +284,16 @@ observeEvent(input$fbRepoDo, {
     names(DF)[1] <- treat
   })
     if(input$expType == "RCBD"){
-      pepa::repo.rcbd(traits, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "CRD"){
-      pepa::repo.crd(traits, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
+      pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "ABD"){
-      pepa::repo.abd(traits, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "A01D"){
-      pepa::repo.a01d(traits, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+      pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
                        data = DF, format = tolower(input$aovFormat))
     }
 
