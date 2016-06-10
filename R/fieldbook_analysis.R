@@ -178,78 +178,129 @@ output$aovVarsUI <- renderUI({
                  multiple = TRUE, width = "100%")
 })
 
-observeEvent(input$fbRepDo, {
+
+# observeEvent(input$fbRepDo, {
+#   output$fbRep <- shiny::renderUI({
+#     DF <- fbInput()
+#     fmt <- paste0(tolower(input$aovFormat), "_document")
+#     ext <- paste0(".", tolower(input$aovFormat))
+#     #y <- input$def_variables
+#     #print(fmt)
+#     yn = input$aovVars #names(DF)[c(7:ncol(DF))]
+#     #print(yn)
+#     rep_name = "report_anova.Rmd"
+#     #tgt = file.path(getwd(), "reports", rep_name)
+#     report <- file.path("reports", rep_name)
+#     dn = dirname(report)
+#     if(!dir.exists(dn)) {
+#       dir.create(report)
+#     }
+#
+#     rps = "REP" # input$def_rep
+#     gtp = "germplasmName" #input$def_genotype
+#     # xmt = attr(DF, "meta")
+#     # xmt = list(xmt, title = xmt$studyName)
+#     xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
+#
+#     #writeLines(file.path("www"), con="log.txt")
+#     author = "HIDAP"
+#     unlink("www/reports/*.*")
+#
+#     fn <- shiny::withProgress(message = "Creating report ...",
+#                         detail = "This may take a while ...", value = 0,{
+#                           try({
+#
+#                               rmarkdown::render(report,
+#                                                 output_format = fmt,
+#                                                 output_dir = file.path("www", "reports"),
+#                                                 params = list(
+#                                                   meta = xmt,
+#                                                   trait = yn,
+#                                                   treat = gtp,
+#                                                   rep  = rps,
+#                                                   data = DF,
+#                                                   maxp = 0.1,
+#                                                   author = author,
+#                                                   host = brapi$db
+#                                                 ))
+#                               #print("Y")
+#                             #}) # in_dir
+#                             incProgress(1/3)
+#                           }) # try
+#
+#                           incProgress(3/3)
+#                         })
+#     #print(fn)
+#
+#
+#     if(fmt == "html_document"){
+#       html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
+#       # if(!file.exists("reports/report_anova.html")) {
+#       #   html <- paste0("<a href='reports/no_report.html' target='_blank'>HTML</a>")
+#       # }
+#     }
+#     if(fmt == "word_document"){
+#       html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
+#     }
+#     if(fmt == "pdf_document"){
+#       html <- paste0("<a href='reports/report_anova.pdf' target='_blank'>PDF</a>")
+#     }
+#
+#     HTML(html)
+#   })
+#
+# })
+
+
+observeEvent(input$fbRepoDo, {
   output$fbRep <- shiny::renderUI({
+    #print("step 1")
     DF <- fbInput()
-    fmt <- paste0(tolower(input$aovFormat), "_document")
-    ext <- paste0(".", tolower(input$aovFormat))
-    #y <- input$def_variables
-    print(fmt)
-    yn = input$aovVars #names(DF)[c(7:ncol(DF))]
-    print(yn)
-    rep_name = "report_anova.Rmd"
-    #tgt = file.path(getwd(), "reports", rep_name)
-    report <- file.path("reports", rep_name)
-    dn = dirname(report)
-    if(!dir.exists(dn)) {
-      dir.create(report)
+    traits = input$aovVars
+
+    treat <- "germplasmName" #input$def_genotype
+    #trait = input$fbCorrVars
+    if(length(trait) < 1) return(NULL)
+
+    shiny::withProgress(message = 'Imputing missing values', {
+    options(warn = -1)
+
+    DF = DF[, c(treat, "REP",  trait)]
+
+    DF[, treat] <- as.factor(DF[, treat])
+
+    # exclude the response variable and empty variable for RF imputation
+    #datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+    x <- DF[, datas]
+    for(i in 1:ncol(x)){
+      x[, i] <- as.numeric(x[, i])
+    }
+    y <- DF[, treat]
+    if (any(is.na(x))){
+      utils::capture.output(
+        DF <- randomForest::rfImpute(x = x, y = y )
+      )
+    }
+    names(DF)[1] <- treat
+  })
+    if(input$expType == "RCBD"){
+      pepa::repo.rcbd(traits, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+    }
+    if(input$expType == "CRD"){
+      pepa::repo.crd(traits, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
+    }
+    if(input$expType == "ABD"){
+      pepa::repo.abd(traits, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+    }
+    if(input$expType == "A01D"){
+      pepa::repo.a01d(traits, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+                       data = DF, format = tolower(input$aovFormat))
     }
 
-    rps = "REP" # input$def_rep
-    gtp = "germplasmName" #input$def_genotype
-    # xmt = attr(DF, "meta")
-    # xmt = list(xmt, title = xmt$studyName)
-    xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
 
-    #writeLines(file.path("www"), con="log.txt")
-    author = "HIDAP"
-    unlink("www/reports/*.*")
-
-    fn <- shiny::withProgress(message = "Creating report ...",
-                        detail = "This may take a while ...", value = 0,{
-                          try({
-
-                              rmarkdown::render(report,
-                                                output_format = fmt,
-                                                output_dir = file.path("www", "reports"),
-                                                params = list(
-                                                  meta = xmt,
-                                                  trait = yn,
-                                                  treat = gtp,
-                                                  rep  = rps,
-                                                  data = DF,
-                                                  maxp = 0.1,
-                                                  author = author,
-                                                  host = brapi$db
-                                                ))
-                              #print("Y")
-                            #}) # in_dir
-                            incProgress(1/3)
-                          }) # try
-
-                          incProgress(3/3)
-                        })
-    #print(fn)
-
-
-    if(fmt == "html_document"){
-      html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
-      # if(!file.exists("reports/report_anova.html")) {
-      #   html <- paste0("<a href='reports/no_report.html' target='_blank'>HTML</a>")
-      # }
-    }
-    if(fmt == "word_document"){
-      html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
-    }
-    if(fmt == "pdf_document"){
-      html <- paste0("<a href='reports/report_anova.pdf' target='_blank'>PDF</a>")
-    }
-
-    HTML(html)
   })
 
 })
-
 
 }
 

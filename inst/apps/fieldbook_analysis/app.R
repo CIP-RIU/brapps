@@ -13,7 +13,7 @@ ui <- dashboardPage(skin = "yellow",
                       sidebarMenu(
                         menuItem("Phenotype",
                           menuSubItem("Analysis",
-                                 tabName = "phn_dashboard", icon = icon("map-o"))
+                                 tabName = "tab_analysis", icon = icon("map-o"))
                                  ,
                                  #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999),
                                   shinyFiles::shinyFilesButton('fileFB', 'File select',
@@ -31,7 +31,7 @@ ui <- dashboardPage(skin = "yellow",
                     ),
                     dashboardBody(
                       tabItems(
-                        tabItem(tabName = "phn_dashboard",
+                        tabItem(tabName = "tab_analysis",
                                 fluidRow(
                                   column(width = 8,
                                          box(width = NULL,
@@ -62,7 +62,7 @@ ui <- dashboardPage(skin = "yellow",
                                 ,
                                 fluidRow(
                                   column(width = 12,
-                                         tabBox(width = NULL, selected = "Map", id = "tabAnalysis",
+                                         tabBox(width = NULL, selected = "Map",# id = "tabAnalysis",
                                                 tabPanel("Correlation",
                                                          qtlcharts::iplotCorr_output('vcor_output', height = 400)
                                                 ),
@@ -91,8 +91,10 @@ ui <- dashboardPage(skin = "yellow",
 
 sv <- function(input, output, session) ({
 
+  values <- reactiveValues()
+
   shinyURL.server()
-  brapps::fieldbook_analysis(input, output, session)
+  brapps::fieldbook_analysis(input, output, session, values)
 })
 
 shinyApp(ui, sv)
