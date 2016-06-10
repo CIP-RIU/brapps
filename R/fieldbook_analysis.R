@@ -270,7 +270,7 @@ observeEvent(input$fbRepoDo, {
     DF[, treat] <- as.factor(DF[, treat])
 
     # exclude the response variable and empty variable for RF imputation
-    #datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+    datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
     x <- DF[, datas]
     for(i in 1:ncol(x)){
       x[, i] <- as.numeric(x[, i])
