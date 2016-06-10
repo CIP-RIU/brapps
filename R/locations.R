@@ -435,5 +435,10 @@ locations <- function(input, output, session, values){
       leaflet::addMarkers(lng = clng, lat = clat, layerId = "marked", icon = greenLeafIcon)
 
   })
-  #dat()
-}
+
+  observe({
+    invalidateLater(millis = 30 * 1000, session)
+    unlink(fp)
+  })
+
+ }
