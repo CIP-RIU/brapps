@@ -11,7 +11,7 @@
 #' @export
 locations <- function(input, output, session){
 
-  if(is.null(brapi)) return()
+  if(is.null(brapi)) return(NULL)
 
   get_plain_host <- function(){
     # host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]
@@ -25,8 +25,12 @@ locations <- function(input, output, session){
 
   dat <- reactive({
     dat <- brapi::locations_list()
-    dat[!is.na(dat$latitude), ]
+    dat <- dat[!is.na(dat$latitude), ]
+
+    dat
   })
+
+
 
   #vls <- reactiveValues()
 
@@ -39,12 +43,15 @@ locations <- function(input, output, session){
     } else {
       pts = dat()[sel, ]
     }
+
     pts
   })
 
-  output$table <- DT::renderDataTable( dat()
-                                      , server = FALSE,
-                                       options = list(scrollX = TRUE))
+
+  output$table <- DT::renderDataTable( {
+    dat()
+  }, server = FALSE,
+    options = list(scrollX = TRUE))
 
   output$map <- leaflet::renderLeaflet({
     pts <- dat_sel()
@@ -64,6 +71,7 @@ locations <- function(input, output, session){
 
   # download the filtered data
   output$locsDL = downloadHandler('BRAPI-locs-filtered.csv', content = function(file) {
+
     utils::write.csv(dat_sel(), file)
   })
 
@@ -122,6 +130,11 @@ locations <- function(input, output, session){
     #print(mb)
 
 
+  })
+
+  observeEvent(input$setLocsToEnv, {
+    brapi_locations <<- dat()
+    brapi_locations_filtered <<- dat_sel()
   })
 
   ############### report #########
