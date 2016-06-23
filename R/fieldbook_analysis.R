@@ -4,7 +4,7 @@ repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, blo
                           format = c("html", "word", "pdf"))
 {
   format <- paste(match.arg(format), "_document", sep = "")
-  dirfiles <- system.file("rmd", package = "pepa")
+  dirfiles <- file.path("www", "reports") #system.file("rmd", package = "pepa")
   outdir <- file.path("www", "reports")
   fileRmd <- file.path(dirfiles, paste0(areport, ".Rmd"))
   fileURL <- file.path(outdir, paste0(areport, ".html"))
