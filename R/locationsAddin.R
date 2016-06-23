@@ -13,13 +13,12 @@ locationsAddin <- function(){
            miniUI::miniContentPanel(
           #locationsUI("locations")
           p(class = 'text-center', shiny::downloadButton('locsDL', 'Download Filtered Data')),
-          p(class = 'text-center',shiny::actionButton("setLocsToEnv", "Add locations to local R environment.")),
-          DT::dataTableOutput("table")
+          DT::dataTableOutput("tableLocs")
         )
       ),
       miniUI::miniTabPanel("Map", icon = icon("map-o"),
                            miniUI::miniContentPanel(padding = 0,
-                                    leaflet::leafletOutput("map", height = "100%")
+                                    leaflet::leafletOutput("mapLocs", height = "100%")
                    )
       ),
       miniUI::miniTabPanel("Histogram", icon = icon("bar-chart"),
@@ -60,16 +59,19 @@ locationsAddin <- function(){
   ##################################
 
   server <- function(input, output, session) {
-    msg = "Please connect to a BrAPI compatible database using the HIDAP database addin."
+    values <- shiny::reactiveValues(crop = "sweetpotato", mode = "brapi")
 
-    if(file.exists("brapi_session.rda")){
-      load("brapi_session.rda")
+    fp = file.path(fbglobal::get_base_dir("brapi"), "brapi_session.rda")
+    if(file.exists(fp)){
+      #load("brapi_session.rda")
+      brapi <<- readRDS(fp)
+
     } else (
       stopApp(msg)
     )
 
-    res = locations(input, output, session)
-    if(is.null(res)) stopApp(msg)
+    locations(input, output, session, values)
+    #brapi_locations <<- locs
 
     shiny::observeEvent(input$done, {
 
