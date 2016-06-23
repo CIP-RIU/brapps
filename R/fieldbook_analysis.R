@@ -1,3 +1,41 @@
+repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, block = 1, k = 1,
+                          title = paste0("Automatic report for a ",toupper(areport), " design"),
+                          subtitle = NULL, author = "International Potato Center",
+                          format = c("html", "word", "pdf"))
+{
+  format <- paste(match.arg(format), "_document", sep = "")
+  dirfiles <- system.file("rmd", package = "pepa")
+  outdir <- file.path("www", "reports")
+  fileRmd <- file.path(dirfiles, paste0(areport, ".Rmd"))
+  fileURL <- file.path(outdir, paste0(areport, ".html"))
+  fileDOCX <- file.path(outdir, paste0(areport, ".docx"))
+  filePDF <- file.path(outdir, paste0(areport, ".pdf"))
+  if(areport != "a01d" ){
+    rmarkdown::render(fileRmd, output_format = format,
+                      output_dir = file.path("www", "reports"),
+                      params = list(traits = traits,
+                                    geno = geno, rep = rep, data = data, maxp = maxp, title = title,
+                                    #block = block, k = k,
+                                    subtitle = subtitle, author = author))
+
+  } else {
+    rmarkdown::render(fileRmd, output_format = format,
+                      output_dir = file.path("www", "reports"),
+                      params = list(traits = traits,
+                                    geno = geno, rep = rep, data = data, maxp = maxp, title = title,
+                                    block = block, k = k,
+                                    subtitle = subtitle, author = author))
+
+  }
+  if (format == "html_document")
+    try(browseURL(fileURL))
+  if (format == "word_document")
+    try(system(paste("open", fileDOCX)))
+  if (format == "pdf_document")
+    try(system(paste("open", filePDF)))
+}
+
+
 
 #' fieldbook_analysis
 #'
@@ -252,6 +290,7 @@ output$aovVarsUI <- renderUI({
 # })
 
 
+
 observeEvent(input$fbRepoDo, {
   output$fbRep <- shiny::renderUI({
     #print("step 1")
@@ -263,44 +302,58 @@ observeEvent(input$fbRepoDo, {
     if(length(trait) < 1) return(NULL)
 
     shiny::withProgress(message = 'Imputing missing values', {
-    options(warn = -1)
+      options(warn = -1)
 
-    DF = DF[, c(treat, "REP",  trait)]
+      DF = DF[, c(treat, "REP",  trait)]
 
-    DF[, treat] <- as.factor(DF[, treat])
+      DF[, treat] <- as.factor(DF[, treat])
 
-    # exclude the response variable and empty variable for RF imputation
-    datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
-    x <- DF[, datas]
-    for(i in 1:ncol(x)){
-      x[, i] <- as.numeric(x[, i])
-    }
-    y <- DF[, treat]
-    if (any(is.na(x))){
-      utils::capture.output(
-        DF <- randomForest::rfImpute(x = x, y = y )
-      )
-    }
-    names(DF)[1] <- treat
-  })
+      # exclude the response variable and empty variable for RF imputation
+      datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+      x <- DF[, datas]
+      for(i in 1:ncol(x)){
+        x[, i] <- as.numeric(x[, i])
+      }
+      y <- DF[, treat]
+      if (any(is.na(x))){
+        utils::capture.output(
+          DF <- randomForest::rfImpute(x = x, y = y )
+        )
+      }
+      names(DF)[1] <- treat
+    })
     if(input$expType == "RCBD"){
-      pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      #pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      repo_ana("rcbd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "CRD"){
-      pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
+      #pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
+      repo_ana("crd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "ABD"){
-      pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      #pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      repo_ana("abd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "A01D"){
-      pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
-                       data = DF, format = tolower(input$aovFormat))
+      # pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+      #                  data = DF, format = tolower(input$aovFormat))
+      repo_ana("a01d", trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+               data = DF, format = tolower(input$aovFormat))
+
     }
 
 
   })
 
+
 })
+
+# x <- eventReactive(input$fbRepoDo, {
+#
+#
+# })
+
+
 
 }
 
