@@ -3,36 +3,46 @@ repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, blo
                           subtitle = NULL, author = "International Potato Center",
                           format = c("html", "word", "pdf"))
 {
-  format <- paste(match.arg(format), "_document", sep = "")
+  format   <- paste(match.arg(format), "_document", sep = "")
+  fmt = "html"
+  if(stringr::str_detect(format, "word")){
+    fmt = "docx"
+  }
+  if(stringr::str_detect(format, "pdf")){
+    fmt = "pdf"
+  }
   dirfiles <- file.path("www", "reports") #system.file("rmd", package = "pepa")
-  outdir <- file.path("www", "reports")
-  fileRmd <- file.path(dirfiles, paste0(areport, ".Rmd"))
-  fileURL <- file.path(outdir, paste0(areport, ".html"))
-  fileDOCX <- file.path(outdir, paste0(areport, ".docx"))
-  filePDF <- file.path(outdir, paste0(areport, ".pdf"))
+  outdir   <- file.path("www", "reports")
+  fileRmd  <- file.path(dirfiles, paste0(areport, ".Rmd"))
+  # fileURL  <- file.path(outdir, paste0(areport, ".html"))
+  # fileDOCX <- file.path(outdir, paste0(areport, ".docx"))
+  # filePDF  <- file.path(outdir, paste0(areport, ".pdf"))
+  out = "No report could be created."
   if(areport != "a01d" ){
-    rmarkdown::render(fileRmd, output_format = format,
-                      output_dir = file.path("www", "reports"),
+    out = rmarkdown::render(fileRmd, output_format = format,
+                      output_dir = outdir,
                       params = list(traits = traits,
                                     geno = geno, rep = rep, data = data, maxp = maxp, title = title,
                                     #block = block, k = k,
                                     subtitle = subtitle, author = author))
 
   } else {
-    rmarkdown::render(fileRmd, output_format = format,
-                      output_dir = file.path("www", "reports"),
+    out = rmarkdown::render(fileRmd, output_format = format,
+                      output_dir = outdir,
                       params = list(traits = traits,
                                     geno = geno, rep = rep, data = data, maxp = maxp, title = title,
                                     block = block, k = k,
                                     subtitle = subtitle, author = author))
 
   }
-  if (format == "html_document")
-    try(browseURL(fileURL))
-  if (format == "word_document")
-    try(system(paste("open", fileDOCX)))
-  if (format == "pdf_document")
-    try(system(paste("open", filePDF)))
+  # if (format == "html_document")
+  #   try(browseURL(fileURL))
+  # if (format == "word_document")
+  #   try(system(paste("open", fileDOCX)))
+  # if (format == "pdf_document")
+  #   try(system(paste("open", filePDF)))
+  #message(out)
+  file.path("reports", paste0(areport, ".", fmt))
 }
 
 
@@ -322,26 +332,27 @@ observeEvent(input$fbRepoDo, {
       }
       names(DF)[1] <- treat
     })
+    out = "no report"
     if(input$expType == "RCBD"){
       #pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
-      repo_ana("rcbd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      out = repo_ana("rcbd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "CRD"){
       #pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
-      repo_ana("crd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      out = repo_ana("crd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "ABD"){
       #pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
-      repo_ana("abd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      out = repo_ana("abd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "A01D"){
       # pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
       #                  data = DF, format = tolower(input$aovFormat))
-      repo_ana("a01d", trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+      out = repo_ana("a01d", trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
                data = DF, format = tolower(input$aovFormat))
 
     }
-
+  HTML("<a href='", out, "' target='_new'>Report</a>")
 
   })
 
