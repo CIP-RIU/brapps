@@ -4,87 +4,60 @@
 #' @param input shiny
 #' @param output shiny
 #' @param session shiny
+#' @param values shiny
 # @import rhandsontable
 #' @import d3heatmap
 #' @import qtlcharts
 #' @import agricolae
 #' @author Reinhard Simon
+#' @importFrom shinyFiles shinyFileChoose getVolumes parseFilePaths
+#' @importFrom utils read.csv
 # @return data.frame
 #' @export
-fieldbook_analysis <- function(input, output, session){
+fieldbook_analysis <- function(input, output, session, values){
+  crop = isolate(values$crop)
+  amode = isolate(values$amode)
 
-  brapi_host = "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu"
+  brapi_host = brapi$db
 
-  volumes <- getVolumes(c("(E:)", "Page File (F:)"))
+    dataInput <- reactive({
+      fbId = input$fbaInput
+      fbId
+    })
 
-  shinyFileChoose(input, 'fileFB', roots=volumes, session=session,
-                  filetypes=c( 'xlsx', 'csv'))
+    fbInput <- reactive({
+      req(input$fbaInput)
+      #fbId = dataInput()
+      #print(fbId)
+      #brapi::study_table(input$fbaInput)
+      get_study(id = input$fbaInput, amode = amode, crop = crop)
+    })
 
-
-  get_plain_host <- function(){
-    host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]
-    if(host == "") host = brapi_host
-    if(stringr::str_detect(host, "@")){
-      if(stringr::str_detect(host, "http://")) {
-        host = stringr::str_replace(host, "http://", "")
+    fbList <- reactive({
+      shiny::withProgress(message = 'Gathering info ...', {
+      if(brapi::can_internet()){
+        sts = brapi::studies()
+      } else {
+        sts <- get_all_studies() # to improve using demo as backfall
       }
-      host = stringr::str_replace(host, "[^.]{3,8}:[^.]{4,8}@", "")
-    }
-    host
-  }
+
+      sts[sts$studyType != "", ]
+      })
+    })
+
+    output$fbList <- renderUI({
+          sts = fbList()
+          if(is.null(sts)) return()
+          sl = as.list(sts$studyDbId)
+          names(sl) = sts$name
+          selectInput("fbaInput", "Fieldbook", choices = sl)
+        })
 
 
-  dataInput <- shiny::reactive({
-    fbId = input$fbaInput
-    fbId
-  })
-
-  fbInput <- shiny::reactive({
-    req(input$fileFB)
-    # fbId = dataInput()
-    # brapi::study_table(fbId)
-
-    mf = parseFilePaths(volumes, input$fileFB)$datapath
-    mf = as.character(mf)
-    if(stringr::str_detect(mf, ".xlsx")){
-      fb = readxl::read_excel(mf, "Fieldbook")
-    } else {
-      fb = read.csv(mf)
-    }
-    xi = which(names(fb) == "TRT1")
-    names(fb)[xi] = "germplasmName"
-    #print(mf)
-    fb
-  })
-
-
-# output$hotFieldbook <- renderDataTable({
-#   try({
-#     DF <- fbInput()
-#     if(!is.null(DF)){
-#
-#       rh = rhandsontable::rhandsontable(DF,
-#                          selectCallback = TRUE,
-#                          readOnly = FALSE,useTypes = TRUE) %>%
-#         hot_table(highlightCol = TRUE, highlightRow = TRUE) %>%
-#         hot_cols( fixedColumnsLeft = 6)
-#       rh
-#     }
-#   })
-# })
 
   output$hotFieldbook <- DT::renderDataTable({
-    #renderRHandsontable({
-    x = NULL
-    withProgress(message = "Loading fieldbook ...",
-                 detail = "This may take a while ...", value = 1, max = 4, {
-                   try({
-                     x <- fbInput()
-
-                   })
-
-                 })
-    x
+    req(input$fbaInput)
+    fbInput()
   },  server = FALSE,  extensions = 'FixedColumns',
   options = list(scrollX = TRUE
                  # ,
@@ -95,15 +68,18 @@ fieldbook_analysis <- function(input, output, session){
 
 
 output$vcor_output = qtlcharts::iplotCorr_render({
-
+  req(input$fbCorrVars)
   DF <- fbInput()
+  treat <- "germplasmName" #input$def_genotype
+  #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
+  trait = input$fbCorrVars
+  #print(length(trait))
+  if(length(trait) < 2) return(NULL)
+
   shiny::withProgress(message = 'Imputing missing values', {
     options(warn = -1)
 
-
-    treat <- "germplasmName" #input$def_genotype
-    trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
-    DF = DF[, c(treat, trait)]
+     DF = DF[, c(treat, trait)]
 
     DF[, treat] <- as.factor(DF[, treat])
 
@@ -118,23 +94,17 @@ output$vcor_output = qtlcharts::iplotCorr_render({
       utils::capture.output(
         DF <- randomForest::rfImpute(x = x, y = y )
       )
-      #data <- cbind(y, data)
-
     }
     names(DF)[1] <- treat
-
     DF = agricolae::tapply.stat(DF, DF[, treat])
     DF = DF[, -c(2)]
     names(DF)[1] = "Genotype"
     row.names(DF) = DF$Genotype
     DF = DF[, -c(1)]
-
-    # iplotCorr(DF,  reorder=TRUE,
-    #           chartOpts=list(cortitle="Correlation matrix",
-    #                          scattitle="Scatterplot"))
     options(warn = 0)
 
   })
+  #str(DF)
   iplotCorr(DF)
 })
 
@@ -171,76 +141,166 @@ output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
 #####################
 
 #observeEvent(input$butDoPhAnalysis, ({
-output$fbRep <- shiny::renderUI({
-    DF <- fbInput()
-    #y <- input$def_variables
-    yn = names(DF)[c(7:ncol(DF))]
-    report =  "report_anova.Rmd"
-    report_dir = system.file("apps/hdtest/reports", package = "brapps")
-    #report_dir <- file.path(getwd(),"inst", "rmd") # for quicker testing
-    wd = getwd()
-    #result_dir  = file.path(wd, "www", "reports")
-    #result_dir  =  system.file("app/www/reports", package = "hidap")
-    result_dir = tempdir()
-    usr = Sys.getenv("USERNAME")
-    if (usr=="") usr = Sys.getenv("USER")
-    author =  paste0(usr, " using HIDAP")
 
-    rps = "REP" # input$def_rep
-    gtp = "germplasmName" #input$def_genotype
-    # xmt = attr(DF, "meta")
-    # xmt = list(xmt, title = xmt$studyName)
-    xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
+get_traits_with_data <- reactive({
+  DF = fbInput()
+  ok = sapply(DF, function(x) sum(is.na(x))) / nrow(DF) < .1
+  ok = names(DF)[ok]
+  ok = ok[stringr::str_detect(ok, " ")]
+  ok
+})
 
-    writeLines(file.path(wd, "www"), con="log.txt")
+get_traits_choice <- reactive({
+  req(input$fbaInput)
+  trts = get_traits_with_data()
+  ci = input$hotFieldbook_columns_selected
+  DF = fbInput()
+  trt_sel = trts[length(trts)]
+  if(!is.null(ci)) {
+    trt_sel = names(DF)[ci]
+  } else
+    if(!(trt_sel %in% trts)){
+      trt_sel = trts[length(trts)]
+    }
+  list(trts = trts, trt_sel = trt_sel)
+})
 
-    shiny::withProgress(message = "Creating report ...",
-                 detail = "This may take a while ...", value = 0,{
-                   try({
-                     withr::with_dir(report_dir, {
-                       #print("X")
-                       rmarkdown::render(report,
-                                         output_format = c("pdf_document", "word_document",
-                                                           "html_document" )
-                                         ,
-                                         output_dir = file.path(wd, "www"),
-                                         params = list(
-                                           meta = xmt,
-                                           trait = yn,
-                                           treat = gtp,
-                                           rep  = rps,
-                                           data = DF,
-                                           maxp = 0.1,
-                                           author = author,
-                                           host = get_plain_host()))
-                       #print("Y")
-                     }) # in_dir
-                     incProgress(1/3)
-                   }) # try
+#### Corr helper
+output$fbCorrVarsUI <- renderUI({
+   tc = get_traits_choice()
+   selectizeInput("fbCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
+                  multiple = TRUE, width = "100%")
+})
 
-                   try({
-                     report_html = stringr::str_replace(report, ".Rmd", ".html")
-                   })
-                   output$fb_report <- renderUI("")
-                   report = file.path(wd, "www", report_html)
-
-
-                   incProgress(3/3)
-                 })
-    #output$fb_report <- renderUI(HTML(html))
-    html <- readLines(report)
-    shiny::HTML(html)
-
+output$aovVarsUI <- renderUI({
+  tc = get_traits_choice()
+  selectizeInput("aovVars", "Select trait(s):", tc$trts, selected = tc$trt_sel,
+                 multiple = TRUE, width = "100%")
 })
 
 
-# output$fbRep <- renderUI({
-#   html <- readLines("/Users/reinhardsimon/Documents/packages/brapi/inst/apps/fieldbook_analysis/www/report_anova.html")
-#   HTML(html)
+# observeEvent(input$fbRepDo, {
+#   output$fbRep <- shiny::renderUI({
+#     DF <- fbInput()
+#     fmt <- paste0(tolower(input$aovFormat), "_document")
+#     ext <- paste0(".", tolower(input$aovFormat))
+#     #y <- input$def_variables
+#     #print(fmt)
+#     yn = input$aovVars #names(DF)[c(7:ncol(DF))]
+#     #print(yn)
+#     rep_name = "report_anova.Rmd"
+#     #tgt = file.path(getwd(), "reports", rep_name)
+#     report <- file.path("reports", rep_name)
+#     dn = dirname(report)
+#     if(!dir.exists(dn)) {
+#       dir.create(report)
+#     }
+#
+#     rps = "REP" # input$def_rep
+#     gtp = "germplasmName" #input$def_genotype
+#     # xmt = attr(DF, "meta")
+#     # xmt = list(xmt, title = xmt$studyName)
+#     xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
+#
+#     #writeLines(file.path("www"), con="log.txt")
+#     author = "HIDAP"
+#     unlink("www/reports/*.*")
+#
+#     fn <- shiny::withProgress(message = "Creating report ...",
+#                         detail = "This may take a while ...", value = 0,{
+#                           try({
+#
+#                               rmarkdown::render(report,
+#                                                 output_format = fmt,
+#                                                 output_dir = file.path("www", "reports"),
+#                                                 params = list(
+#                                                   meta = xmt,
+#                                                   trait = yn,
+#                                                   treat = gtp,
+#                                                   rep  = rps,
+#                                                   data = DF,
+#                                                   maxp = 0.1,
+#                                                   author = author,
+#                                                   host = brapi$db
+#                                                 ))
+#                               #print("Y")
+#                             #}) # in_dir
+#                             incProgress(1/3)
+#                           }) # try
+#
+#                           incProgress(3/3)
+#                         })
+#     #print(fn)
+#
+#
+#     if(fmt == "html_document"){
+#       html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
+#       # if(!file.exists("reports/report_anova.html")) {
+#       #   html <- paste0("<a href='reports/no_report.html' target='_blank'>HTML</a>")
+#       # }
+#     }
+#     if(fmt == "word_document"){
+#       html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
+#     }
+#     if(fmt == "pdf_document"){
+#       html <- paste0("<a href='reports/report_anova.pdf' target='_blank'>PDF</a>")
+#     }
+#
+#     HTML(html)
+#   })
+#
 # })
-#)
 
 
+observeEvent(input$fbRepoDo, {
+  output$fbRep <- shiny::renderUI({
+    #print("step 1")
+    DF <- fbInput()
+    trait = input$aovVars
+
+    treat <- "germplasmName" #input$def_genotype
+    #trait = input$fbCorrVars
+    if(length(trait) < 1) return(NULL)
+
+    shiny::withProgress(message = 'Imputing missing values', {
+    options(warn = -1)
+
+    DF = DF[, c(treat, "REP",  trait)]
+
+    DF[, treat] <- as.factor(DF[, treat])
+
+    # exclude the response variable and empty variable for RF imputation
+    datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+    x <- DF[, datas]
+    for(i in 1:ncol(x)){
+      x[, i] <- as.numeric(x[, i])
+    }
+    y <- DF[, treat]
+    if (any(is.na(x))){
+      utils::capture.output(
+        DF <- randomForest::rfImpute(x = x, y = y )
+      )
+    }
+    names(DF)[1] <- treat
+  })
+    if(input$expType == "RCBD"){
+      pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+    }
+    if(input$expType == "CRD"){
+      pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
+    }
+    if(input$expType == "ABD"){
+      pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+    }
+    if(input$expType == "A01D"){
+      pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+                       data = DF, format = tolower(input$aovFormat))
+    }
+
+
+  })
+
+})
 
 }
 

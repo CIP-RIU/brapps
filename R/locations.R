@@ -4,40 +4,80 @@
 #' @param input shiny
 #' @param output shiyn
 #' @param session shiny
+#' @param values shiny
 #' @import shiny
 #' @importFrom magrittr '%>%'
+#' @importFrom brapi can_internet
 #' @author Reinhard Simon
 # @return data.frame
 #' @export
-locations <- function(input, output, session){
+locations <- function(input, output, session, values){
 
-  if(is.null(brapi)) return(NULL)
+  #if(is.null(brapi)) return(NULL)
+  crop = isolate(values$crop)
+  #mode = isolate(values$mode)
 
-  get_plain_host <- function(){
-    # host = stringr::str_split(Sys.getenv("BRAPI_DB") , ":80")[[1]][1]
-    # if(stringr::str_detect(host, "@")){
-    #   host = stringr::str_replace(host, "http://[^.]{3,8}:[^.]{4,8}@", "")
-    # }
-    # host
-    brapi::get_brapi()
+  msg_no_loc = "No location selected."
+
+  url = system.file("images", package = "brapps")
+  greenLeafIcon <- leaflet::makeIcon(
+
+    iconUrl = file.path(url, "leaf-green.png"),
+    iconWidth = 38, iconHeight = 95,
+    iconAnchorX = 22, iconAnchorY = 94,
+    shadowUrl = file.path(url, "leaf-shadow.png"),
+    shadowWidth = 50, shadowHeight = 64,
+    shadowAnchorX = 4, shadowAnchorY = 62
+  )
+
+
+
+  # get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
+  #   bd = fbglobal::get_base_dir(mode = mode)
+  #   fp = file.path(bd, acrop, atype)
+  #   #print("get base data")
+  #   #rint(fp)
+  #   if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
+  #   fp
+  # }
+
+  return_null_with_msg <- function(msg){
+    cat(msg)
+    return(NULL)
   }
 
+  fp = file.path(get_base_data(atype = "location", acrop = crop), "locations.rda")
+
+  locationData <- reactiveFileReader(10000, session, fp, readRDS)
 
   dat <- reactive({
-    dat <- brapi::locations_list()
-    dat <- dat[!is.na(dat$latitude), ]
+    dat = NULL
+    if(file.exists(fp)){
+      dat = locationData()
+    }
 
+    if(is.null(dat)) {
+
+    try({
+      if(is.null(brapi)) return_null_with_msg("Not connection to a BrAPI db set. Please connect.")
+      dat <- brapi::locations_list()
+      saveRDS(dat, file = fp)
+    })
+    if(is.null(dat)){
+      return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
+    }
+    }
+    out = dat[!is.na(dat$latitude), ]
+    #print(head(dat))
     dat
   })
 
 
-
-  #vls <- reactiveValues()
-
-  #vls$dat_sel <- dat()
-
   dat_sel <- reactive({
-    sel = input$table_rows_all
+    #req(input$tableLocs)
+    #req(input$tableLocs)
+    if(is.null(dat())) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
+    sel = input$tableLocs_rows_all
     if(is.null(sel)){
       pts = dat()
     } else {
@@ -47,18 +87,19 @@ locations <- function(input, output, session){
     pts
   })
 
+  output$tableLocs <- DT::renderDataTable( dat()
+                                      , server = FALSE,
+                                       options = list(scrollX = TRUE))
 
-  output$table <- DT::renderDataTable( {
-    dat()
-  }, server = FALSE,
-    options = list(scrollX = TRUE))
-
-  output$map <- leaflet::renderLeaflet({
+  output$mapLocs <- leaflet::renderLeaflet({
     pts <- dat_sel()
+    if(is.null(pts)) pts <- dat()
+    if(is.null(pts)) return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
+    pts = pts[!is.na(pts$longitude), ]
 
     leaflet::leaflet(pts, height = "100%") %>%
       leaflet::addTiles() %>%
-      leaflet::addMarkers(clusterOptions = leaflet::markerClusterOptions(clickable = T)) %>%
+      leaflet::addAwesomeMarkers(clusterOptions = leaflet::markerClusterOptions(clickable = T)) %>%
       leaflet::fitBounds(
         ~min(pts$longitude), ~min(pts$latitude),
         ~max(pts$longitude), ~max(pts$latitude)
@@ -66,8 +107,6 @@ locations <- function(input, output, session){
 
 
   })
-
-
 
   # download the filtered data
   output$locsDL = downloadHandler('BRAPI-locs-filtered.csv', content = function(file) {
@@ -77,7 +116,7 @@ locations <- function(input, output, session){
 
 
   mrks <- reactive({
-    x = input$map_marker_click
+    x = input$mapLocs_marker_click
     subset(dat_sel(), dat_sel()$latitude == as.numeric(x$lat) &
              dat_sel()$longitude == as.numeric(x$lng))
   })
@@ -87,9 +126,7 @@ locations <- function(input, output, session){
          xlab = "altitude [m]", sub = "Selected location frequencies are in red.")
     graphics::hist(dat_sel()$altitude, add = T, col = "red")
     if(length(mrks()) > 0){
-      # print("abline")
-      # print(mrks()$altitude)
-      graphics::abline(v = mrks()$altitude, col="blue", lwd = 5)
+       graphics::abline(v = mrks()$altitude, col="blue", lwd = 5)
     }
   })
 
@@ -109,28 +146,16 @@ locations <- function(input, output, session){
     paste0("<center>", x, "</center>") %>% HTML
   }
 
-  observe({
+  output$siteInfo <- renderUI({
+    out = msg_no_loc
     rec = mrks()
     if (nrow(rec)==1) {
-      output$siteInfo <- renderUI({
-        #str(rec) %>% paste %>% print
-        rec2info(rec)
-      })
-    } else {
-      output$siteInfo = renderPrint({
-        ""
-      })
+      out = rec2info(rec)
     }
 
+    HTML(out)
   })
 
-  observeEvent(input$map_bounds, {
-    #print("change view area!")
-    mb = input$map_bounds
-    #print(mb)
-
-
-  })
 
   observeEvent(input$setLocsToEnv, {
     brapi_locations <<- dat()
@@ -146,121 +171,290 @@ locations <- function(input, output, session){
     locs <- dat_sel()
     n = nrow(locs)
     if(n<1) return("no locations in view!")
-    report = paste0("report_location.Rmd")
-    #report = file.path("inst", "rmd", "report_location.Rmd")
-    report = file.path(system.file("rmd", package = "brapps"), "report_location.Rmd")
-    rep_dir <- "www/reports/"
-    if(!file.exists(rep_dir)){
-      rep_dir = tempdir()
+    rep_name = "report_location.Rmd"
+    #tgt = file.path(getwd(), "reports", rep_name)
+    report <- file.path(getwd(), "reports", rep_name)
+    dn = dirname(report)
+    if(!dir.exists(dn)) {
+      dir.create(report)
+    }
+    if(!file.exists(report)){
+
+      org = system.file("/apps/hdtest/reports/report_location.Rmd", package = "brapps")
+
+      file.copy(org, report)
     }
 
-    setProgress(5)
 
+
+    setProgress(5)
+    fn = "no report created."
+    try({
     fn <- rmarkdown::render(report,
-                            #output_format = "all",
-                            output_dir = rep_dir,
+                            output_dir = file.path("www", "reports"), #rep_dir,
                             params = list(
                               locs = locs))
+    })
     setProgress(8)
-
-    html <- readLines(file.path(rep_dir, "report_location.html"))
     }) # progress
 
+    html <- includeHTML(fn)
     HTML(html)
   })
 
 
-  get_geo_locs <- function(){
-    locs = brapi::locations_list()
-    #filter out those without georefs
-    locs = locs[!is.na(locs$latitude),]
-    if(nrow(locs) == 0) return(NULL)
-    locs
+  get_geo_mark <- function(){
+    click<-input$mapLocs_marker_click
+    if(is.null(click))
+      return(NULL)
+    # leaflet::clearMarkers(input$mapLocs)
+    #
+    # leaflet::addMarkers(input$mapLocs,lat =   click$lat, lng= click$lng, icon = greenLeafIcon)
+
+    locs = dat() #  get_geo_locs()
+
+    locs[locs$latitude == click$lat & locs$longitude == click$lng, ]
   }
 
-  get_geo_mark <- function(){
-    click<-input$map_marker_click
-    if(is.null(click))
-      return()
-    locs = get_geo_locs()
-    locs[locs$latitude == click$lat & locs$longitude == click$lng, ]
+  # get_all_studies <- function(){
+  #   fp = file.path(get_base_data(atype = "fieldbook"), "fieldbooks.rda")
+  #   stds = NULL
+  #   try({
+  #     if(file.exists(fp)) {
+  #       stds = readRDS(file = fp)
+  #     }
+  #   })
+  #   if(is.null(stds)){
+  #     stds = brapi::studies()
+  #     saveRDS(stds, fp)
+  #   }
+  #   stds
+  # }
+
+  # get_study_path <- function(year, id, mode = mode, crop = crop){
+  #   # if(can_internet()){
+  #   #   mode = "brapi"
+  #   # } else {
+  #   #   mode = "Demo"
+  #   # }
+  #   ##mode = "brapi"
+  #   if(is.null(year)){
+  #     fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), paste0(id,".rda"))
+  #   }
+  #   if(!is.null(year)){
+  #     fp = file.path(get_base_data(atype = "fieldbook", mode = mode, acrop = crop), year, paste0(id, ".rda"))
+  #   }
+  #   dn = dirname(fp)
+  #   #print(dn)
+  #   if(!dir.exists(dn)) dir.create(dn, recursive = TRUE)
+  #   fp
+  # }
+#
+#   get_study <- function(year, id){
+#
+#     fp = get_study_path(year, id)
+#     stdy = NULL
+#     try({
+#       if(file.exists(fp)) {
+#         stdy = readRDS(file = fp)
+#       }
+#     })
+#     if(is.null(stdy)){
+#       if(can_internet() & !is.null(brapi)){
+#         stdy = brapi::study_table(id)
+#         saveRDS(stdy, fp)
+#       }
+#      }
+#     stdy
+#   }
+
+  get_trials_for_location <- function(amode = "demo", crop){
+    locs = get_geo_mark()
+    if(is.null(locs)) return(NULL)
+
+    stds = get_all_studies(amode = amode, crop = crop)
+    stds <- stds[!is.na(stds$locationDbId), ]
+    sid = stds[stds$locationDbId %in% locs$locationDbId, "studyDbId"]
+
+    # Download most recent trial for this location!
+    if(can_internet()){
+      ms = max(sid)
+      #xs = stds[stds$studyDbId == ms, ]
+      ss = get_study(year = stds$years[ms], id = ms, amode = amode, crop = crop)
+    }
+    sid
   }
 
 
   output$site_fieldtrials <- renderUI({
+    html = msg_no_loc
+
+    #TODO get amode from user input
+
+    amode = "demo"
+
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
-    stds = brapi::studies()
-    locs = get_geo_mark()
-    #print(locs)
-    if(is.null(locs)) return(NULL)
-    #print(locs)
-    #out = "No trials found for this location!"
-
-    # 1st try to find via id if not use unique name
-    sid = stds[stds$locationDbId == locs$locationDbId, "studyDbId"]
-    if (length(sid) == 0) {
-      # REDO! Use all locations; group by country (rev. order by year; highlight the marked one!)
-      sid = stds[stringr::str_detect(toupper(stds$name), locs$Uniquename), "studyDbId"]
-
-    }
-
+    #print(mode)
+    #print(crop)
+    sid = get_trials_for_location(amode = amode, crop = crop)
+    print(sid)
+    if(is.null(sid)){
+      out = msg_no_loc
+    } else {
     setProgress(5)
 
-    if(length(sid) != 0){
-      host = brapi$db  #get_plain_host()
-      path = "/breeders/trial/"
+    if(length(sid) > 0){
 
-      out = paste0("<br><a href='http://",host, path, sid, "' target='_blank'>", stds[stds$studyDbId %in% sid, "name"], "</a>") %>%
-        paste(collapse = ", ")
+      stds = get_all_studies(amode = amode, crop = crop)
+      stds = stds[stds$studyDbId %in% sid, ]
+
+      txt = paste0("No internet connected!<br/>")
+      out = stds$name %>% paste(collapse = ", ")
+
+      if(can_internet() & !is.null(brapi)){
+        txt = ""
+
+        path = "/breeders/trial/"
+        db = brapi$db
+        host = db
+        if(!stringr::str_detect(db, "@")){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
+        }
+        if(rstudioapi::isAvailable()){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
+        }
+        #print(sid)
+        out = paste0("<br><a href='",host, path, sid, "' target='_blank'>", stds$name, "</a>") %>%
+          paste(collapse = ", ")
+
+      }
+      html = paste0(txt, out)
     }
 
-    setProgress(8)
+      setProgress(8)
 
-    HTML(out)
+      }
     })
+    HTML(html)
+
   })
 
 
   output$site_genotypes <- renderUI({
+    out = msg_no_loc
+
+    #if(!can_internet()) return("No internet connected!")
+    #if(!is.null(get_geo_mark())){
+
+    # TODO get this from user input demo/brapi
+    amode = "demo"
 
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
-    stds = brapi::studies()
-    locs = get_geo_mark()
-    if(is.null(locs)) return(NULL)
-    #print(locs)
-    #out = "No trials found for this location!"
-    setProgress(4)
+      sid = get_trials_for_location(amode, crop)
+      #print(paste("geno/site",sid))
+      if(is.null(sid)){
+        out = msg_no_loc
+      } else {
+      #print(sid)
+      year = NULL
+      stds = get_all_studies(amode = amode, crop = crop)
 
-    # 1st try to find via id if not use unique name
-    sid = stds[stds$locationDbId == locs$locationDbId, "studyDbId"]
-    if (length(sid) == 0) {
-      sid = stds[stringr::str_detect(toupper(stds$name), locs$Uniquename), "studyDbId"]
+      #ms = NULL
+      if(length(sid) > 1){
+        sid = max(sid)
 
-    }
-    if(length(sid) != 0){
+      }
+      stds = stds[stds$studyDbId == sid, ]
+      year = stds$years
 
-      #TODO implement BRAPI call to study table!
-      study = brapi::study_table(sid[1])
-      if(is.null(study)) return(NULL)
-      topgp = brapi::get_top_germplasm(study)
+      #print(year)
+      fb = NULL
+      fb = get_study(year, sid)
+      #print(sid)
 
+
+      res = NULL
+
+      if(is.null(fb)) res = "The most recently added trial for this site seems to have no data!"
+
+      if(is.null(res)){
+        topgp = brapi::get_top_germplasm(fb)
+        #print(topgp)
+        if(is.null(topgp))
+          res = "Cannot find this trait in the most recently added trial."
+
+      }
+
+
+      if(is.null(res)){
       gid = topgp$germplasmDbId
       gnm = topgp$germplasmName
       hid = topgp$`Harvest index computing percent`
+      txt = ""
+      if(can_internet() ){
+        db = brapi$db
+        host = db
+        if(!stringr::str_detect(db, "@")){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
+        }
+        if(rstudioapi::isAvailable()){
+          if(!stringr::str_detect(db, "http")) {
+            host = paste0("http://", db)
+          }
+        }
 
-      host = brapi$db
+        path = "/stock/"
+        out = paste0("<a href='",host, path, gid,"/view' target='_blank'>", gnm, " (",hid,  ")</a>")
 
-      path = "/stock/"
+        out = paste(out, collapse = ", ")
+        txt = ""
+        #print("here")
+        #print(out)
 
-      #TODO change for genotypes
-      out = paste0("<a href='http://",host, path, gid,"/view' target='_blank'>", gnm, " (",hid,  ")</a>")
-      txt = paste0("Top genotypes for trait (", "Harvest index" ,"):</br>") # TODO make trait choosable
-      out = paste( out, collapse = ", ")
-      out = paste(txt, out)
-    }
+      }
+      if(!can_internet()){
+        out = paste0 (gnm, " (",hid,  ")")
+        out = paste(out, collapse = ", ")
+        txt = paste("No internet connected!</br></br>")
+      }
+
+      locs = dat()
+      loc_name = locs[locs$locationDbId %in% sid, "name"]
+      txt = paste0(txt, "Top genotypes for trait (", "Harvest index" ,") from most recent (", year
+                   ,") fieldbook: ", stds$name,
+                   " for location: ",loc_name,":</br>") # TODO make trait choosable
+      res = paste(txt, out)
+      }
+
+      out = res
     setProgress(8)
-    HTML(out)
+      }
+
     })
+    #}
+    HTML(out)
   })
 
-}
+
+  observeEvent(input$mapLocs_marker_click, {
+    ## Get the click info like had been doing
+    click <- input$mapLocs_marker_click
+    clat <- click$lat
+    clng <- click$lng
+     leaflet::leafletProxy('mapLocs') %>% # use the proxy to save computation
+      leaflet::addMarkers(lng = clng, lat = clat, layerId = "marked", icon = greenLeafIcon)
+
+  })
+
+  observe({
+    invalidateLater(millis = 30 * 1000, session)
+    unlink(fp)
+  })
+
+ }

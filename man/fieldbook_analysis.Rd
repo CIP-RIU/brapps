@@ -4,7 +4,7 @@
 \alias{fieldbook_analysis}
 \title{fieldbook_analysis}
 \usage{
-fieldbook_analysis(input, output, session)
+fieldbook_analysis(input, output, session, values)
 }
 \arguments{
 \item{input}{shiny}
@@ -12,6 +12,8 @@ fieldbook_analysis(input, output, session)
 \item{output}{shiny}
 
 \item{session}{shiny}
+
+\item{values}{shiny}
 }
 \description{
 fieldbook_analysis
