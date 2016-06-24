@@ -116,38 +116,55 @@ fieldbook_analysis <- function(input, output, session, values){
   selection = list(target = 'column', mode = "single")
   )
 
-  phCorr <- function(trait){
+  phCorr <- function(trait, useMode = "dendo", maxGermplasm = 100, filterTrait = NULL){
     DF <- fbInput()
     treat <- "germplasmName" #input$def_genotype
     #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
     #trait = input$fbCorrVars
     #print(length(trait))
     if(length(trait) < 2) return(NULL)
+    if(!all(trait %in% names(DF))) return(NULL)
+    DF = DF[, c(treat, trait)]
+    for(i in 2:ncol(DF)){
+      DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
+    }
+
+    # filter out materials with no data
+
+    # if more than 100 or x%
+    # if(useMode == "dendo" & nrow(DF) > 100 & is.null(filterTrait)){
+    #   DF = DF[1:maxGermplasm, ]
+    # }
+    #
+    # DF[, treat] <- DF[, treat] %>% as.character %>% as.factor()
+
+
 
     shiny::withProgress(message = 'Imputing missing values', {
       options(warn = -1)
-
-      DF = DF[, c(treat, trait)]
-
-      DF[, treat] <- as.factor(DF[, treat])
-
       # exclude the response variable and empty variable for RF imputation
       datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
       x <- DF[, datas]
       for(i in 1:ncol(x)){
         x[, i] <- as.numeric(x[, i])
       }
-      y <- DF[, treat]
+      y <- DF[, treat] %>% as.factor
       if (any(is.na(x))){
         utils::capture.output(
-          DF <- randomForest::rfImpute(x = x, y = y )
+          DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
         )
+        #x = FastImputation::UnfactorColumns(x)
+        #x = sapply(x, as.numeric) %>% as.data.frame
+
+        #TODO add restrictions
+        # patterns = FastImputation::TrainFastImputation(x)
+        # DF = FastImputation::FastImputation(x, patterns)
       }
       names(DF)[1] <- treat
       DF = agricolae::tapply.stat(DF, DF[, treat])
       DF = DF[, -c(2)]
-      names(DF)[1] = "Genotype"
-      row.names(DF) = DF$Genotype
+      names(DF)[1] = "germplasmName"
+      row.names(DF) = DF$germplasmName
       DF = DF[, -c(1)]
       options(warn = 0)
 
@@ -165,13 +182,14 @@ output$vcor_output = qtlcharts::iplotCorr_render({
 
 output$phHeat_output = d3heatmap::renderD3heatmap({
   req(input$phHeatCorrVars)
-  DF <- phCorr(input$phHeatCorrVars)
+  DF <- phCorr(input$phHeatCorrVars, useMode = "dendo")
+  par(mar=c(3,1,1,10))
   d3heatmap::d3heatmap(DF)
 })
 
 output$phDend_output = renderPlot({
   req(input$phDendCorrVars)
-  DF <- phCorr(input$phDendCorrVars)
+  DF <- phCorr(input$phDendCorrVars, useMode = "dendo")
 
   dend <- DF %>% dist %>% hclust %>% as.dendrogram()
 
@@ -179,6 +197,34 @@ output$phDend_output = renderPlot({
   plot(dend, horiz = TRUE)
 })
 
+output$phDens_output = renderPlot({
+  req(input$phDens)
+
+  #par(mar=c(3,1,1,10))
+  DF <- fbInput()
+  if(!("REP" %in% names(DF))) return(NULL)
+  if(any(is.null(DF$REP))) return(NULL)
+  titl = input$phDens
+
+  DF <- DF[, c("REP", titl)]
+  DF[, 2] <- as.numeric(DF[, 2])
+  n = max(DF$REP)
+  cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")
+
+  dens <- density(DF[DF$REP == 1, 2], na.rm = TRUE)
+  plot(dens, main = titl)
+  if(n > 1){
+    for(i in 2:n){
+      #print(DF[DF$REP == i, 2])
+      dens <- density(DF[DF$REP == i, 2] , na.rm = TRUE)
+      lines(dens, col = cls[i])
+    }
+    legend("topright", legend = 1:n, title = "Repetition", lty = 1, col = cls[1:n])
+  }
+  #abline(v = mean(DF[, 2], na.rm = TRUE), lwd = 2, col = "grey30")
+  rug(DF[, 2], na.rm = TRUE)
+
+})
 
 
 output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
@@ -269,6 +315,14 @@ output$aovVarsUI <- renderUI({
                  multiple = TRUE, width = "100%")
 })
 
+output$phDensUI <- renderUI({
+  #print("Here")
+  tc = get_traits_choice()
+  #print(tc)
+  selectInput("phDens", "Select trait:", tc$trts, selected = tc$trt_sel,
+                 multiple = FALSE, width = "100%")
+
+})
 
 
 
