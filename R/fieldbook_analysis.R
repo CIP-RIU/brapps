@@ -169,7 +169,7 @@ output$phHeat_output = d3heatmap::renderD3heatmap({
   d3heatmap::d3heatmap(DF)
 })
 
-output$phDend_output = renderImage({
+output$phDend_output = renderPlot({
   req(input$phDendCorrVars)
   DF <- phCorr(input$phDendCorrVars)
 
