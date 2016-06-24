@@ -1,3 +1,4 @@
+
 repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, block = 1, k = 1,
                           title = paste0("Automatic report for a ",toupper(areport), " design"),
                           subtitle = NULL, author = "International Potato Center",
@@ -59,6 +60,7 @@ repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, blo
 #' @import agricolae
 #' @author Reinhard Simon
 #' @importFrom shinyFiles shinyFileChoose getVolumes parseFilePaths
+#' @importFrom magrittr '%>%'
 #' @importFrom utils read.csv
 # @return data.frame
 #' @export
@@ -114,46 +116,67 @@ fieldbook_analysis <- function(input, output, session, values){
   selection = list(target = 'column', mode = "single")
   )
 
+  phCorr <- function(trait){
+    DF <- fbInput()
+    treat <- "germplasmName" #input$def_genotype
+    #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
+    #trait = input$fbCorrVars
+    #print(length(trait))
+    if(length(trait) < 2) return(NULL)
+
+    shiny::withProgress(message = 'Imputing missing values', {
+      options(warn = -1)
+
+      DF = DF[, c(treat, trait)]
+
+      DF[, treat] <- as.factor(DF[, treat])
+
+      # exclude the response variable and empty variable for RF imputation
+      datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+      x <- DF[, datas]
+      for(i in 1:ncol(x)){
+        x[, i] <- as.numeric(x[, i])
+      }
+      y <- DF[, treat]
+      if (any(is.na(x))){
+        utils::capture.output(
+          DF <- randomForest::rfImpute(x = x, y = y )
+        )
+      }
+      names(DF)[1] <- treat
+      DF = agricolae::tapply.stat(DF, DF[, treat])
+      DF = DF[, -c(2)]
+      names(DF)[1] = "Genotype"
+      row.names(DF) = DF$Genotype
+      DF = DF[, -c(1)]
+      options(warn = 0)
+
+    })
+    DF
+  }
+
 
 output$vcor_output = qtlcharts::iplotCorr_render({
   req(input$fbCorrVars)
-  DF <- fbInput()
-  treat <- "germplasmName" #input$def_genotype
-  #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
-  trait = input$fbCorrVars
-  #print(length(trait))
-  if(length(trait) < 2) return(NULL)
-
-  shiny::withProgress(message = 'Imputing missing values', {
-    options(warn = -1)
-
-     DF = DF[, c(treat, trait)]
-
-    DF[, treat] <- as.factor(DF[, treat])
-
-    # exclude the response variable and empty variable for RF imputation
-    datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
-    x <- DF[, datas]
-    for(i in 1:ncol(x)){
-      x[, i] <- as.numeric(x[, i])
-    }
-    y <- DF[, treat]
-    if (any(is.na(x))){
-      utils::capture.output(
-        DF <- randomForest::rfImpute(x = x, y = y )
-      )
-    }
-    names(DF)[1] <- treat
-    DF = agricolae::tapply.stat(DF, DF[, treat])
-    DF = DF[, -c(2)]
-    names(DF)[1] = "Genotype"
-    row.names(DF) = DF$Genotype
-    DF = DF[, -c(1)]
-    options(warn = 0)
-
-  })
+  DF <- phCorr(input$fbCorrVars)
   #str(DF)
   iplotCorr(DF)
+})
+
+output$phHeat_output = d3heatmap::renderD3heatmap({
+  req(input$phHeatCorrVars)
+  DF <- phCorr(input$phHeatCorrVars)
+  d3heatmap::d3heatmap(DF)
+})
+
+output$phDend_output = renderImage({
+  req(input$phDendCorrVars)
+  DF <- phCorr(input$phDendCorrVars)
+
+  dend <- DF %>% dist %>% hclust %>% as.dendrogram()
+
+  par(mar=c(3,1,1,10))
+  plot(dend, horiz = TRUE)
 })
 
 
@@ -210,6 +233,12 @@ get_traits_choice <- reactive({
     if(!(trt_sel %in% trts)){
       trt_sel = trts[length(trts)]
     }
+  # add one more trait so a corr matrix can be shown
+  # choose one at random
+  if(length(trts)>=2){
+    trt_sel <- c(trt_sel, trts[!trts %in% trt_sel][1] )
+  }
+
   list(trts = trts, trt_sel = trt_sel)
 })
 
@@ -220,84 +249,26 @@ output$fbCorrVarsUI <- renderUI({
                   multiple = TRUE, width = "100%")
 })
 
+output$phHeatCorrVarsUI <- renderUI({
+  tc = get_traits_choice()
+  selectizeInput("phHeatCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
+                 multiple = TRUE, width = "100%")
+})
+
+output$phDendCorrVarsUI <- renderUI({
+  tc = get_traits_choice()
+  selectizeInput("phDendCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
+                 multiple = TRUE, width = "100%")
+})
+
+
+
 output$aovVarsUI <- renderUI({
   tc = get_traits_choice()
   selectizeInput("aovVars", "Select trait(s):", tc$trts, selected = tc$trt_sel,
                  multiple = TRUE, width = "100%")
 })
 
-
-# observeEvent(input$fbRepDo, {
-#   output$fbRep <- shiny::renderUI({
-#     DF <- fbInput()
-#     fmt <- paste0(tolower(input$aovFormat), "_document")
-#     ext <- paste0(".", tolower(input$aovFormat))
-#     #y <- input$def_variables
-#     #print(fmt)
-#     yn = input$aovVars #names(DF)[c(7:ncol(DF))]
-#     #print(yn)
-#     rep_name = "report_anova.Rmd"
-#     #tgt = file.path(getwd(), "reports", rep_name)
-#     report <- file.path("reports", rep_name)
-#     dn = dirname(report)
-#     if(!dir.exists(dn)) {
-#       dir.create(report)
-#     }
-#
-#     rps = "REP" # input$def_rep
-#     gtp = "germplasmName" #input$def_genotype
-#     # xmt = attr(DF, "meta")
-#     # xmt = list(xmt, title = xmt$studyName)
-#     xmt = list(title = attr(DF, "meta")$studyName, contact = "x y", site = attr(DF, "meta")$locationName, country = "Z", year = 2016 )
-#
-#     #writeLines(file.path("www"), con="log.txt")
-#     author = "HIDAP"
-#     unlink("www/reports/*.*")
-#
-#     fn <- shiny::withProgress(message = "Creating report ...",
-#                         detail = "This may take a while ...", value = 0,{
-#                           try({
-#
-#                               rmarkdown::render(report,
-#                                                 output_format = fmt,
-#                                                 output_dir = file.path("www", "reports"),
-#                                                 params = list(
-#                                                   meta = xmt,
-#                                                   trait = yn,
-#                                                   treat = gtp,
-#                                                   rep  = rps,
-#                                                   data = DF,
-#                                                   maxp = 0.1,
-#                                                   author = author,
-#                                                   host = brapi$db
-#                                                 ))
-#                               #print("Y")
-#                             #}) # in_dir
-#                             incProgress(1/3)
-#                           }) # try
-#
-#                           incProgress(3/3)
-#                         })
-#     #print(fn)
-#
-#
-#     if(fmt == "html_document"){
-#       html <- paste0("<a href='reports/report_anova.html' target='_blank'>HTML</a>")
-#       # if(!file.exists("reports/report_anova.html")) {
-#       #   html <- paste0("<a href='reports/no_report.html' target='_blank'>HTML</a>")
-#       # }
-#     }
-#     if(fmt == "word_document"){
-#       html <- paste0("<a href='reports/report_anova.docx' target='_blank'>WORD</a>")
-#     }
-#     if(fmt == "pdf_document"){
-#       html <- paste0("<a href='reports/report_anova.pdf' target='_blank'>PDF</a>")
-#     }
-#
-#     HTML(html)
-#   })
-#
-# })
 
 
 
