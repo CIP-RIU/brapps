@@ -222,7 +222,7 @@ output$phDens_output = renderPlot({
     legend("topright", legend = 1:n, title = "Repetition", lty = 1, col = cls[1:n])
   }
   #abline(v = mean(DF[, 2], na.rm = TRUE), lwd = 2, col = "grey30")
-  rug(DF[, 2], na.rm = TRUE)
+  rug(DF[, 2])
 
 })
 
@@ -316,10 +316,8 @@ output$aovVarsUI <- renderUI({
 })
 
 output$phDensUI <- renderUI({
-  #print("Here")
   tc = get_traits_choice()
-  #print(tc)
-  selectInput("phDens", "Select trait:", tc$trts, selected = tc$trt_sel,
+  selectizeInput("phDens", "Select trait:", tc$trts, selected = tc$trt_sel,
                  multiple = FALSE, width = "100%")
 
 })
