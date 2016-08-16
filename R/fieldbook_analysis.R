@@ -211,18 +211,18 @@ output$phDens_output = renderPlot({
   n = max(DF$REP)
   cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")
 
-  dens <- density(DF[DF$REP == 1, 2], na.rm = TRUE)
-  plot(dens, main = titl)
-  if(n > 1){
-    for(i in 2:n){
+  dens <- density(DF[DF$REP, 2], na.rm = TRUE)
+  plot(dens, main = titl, ylim = c(0, 0.8))
+  if(n > 1 & n < 6){#Assumption no more than 5 repetitions
+    for(i in 1:n){
       #print(DF[DF$REP == i, 2])
       dens <- density(DF[DF$REP == i, 2] , na.rm = TRUE)
-      lines(dens, col = cls[i])
+      lines(dens, col = cls[i+1])
     }
-    legend("topright", legend = 1:n, title = "Repetition", lty = 1, col = cls[1:n])
+    legend("topright", legend = c("overall", 1:n), title = "Repetition", lty = 1, col = cls[1:(n+1)])
   }
   #abline(v = mean(DF[, 2], na.rm = TRUE), lwd = 2, col = "grey30")
-  rug(DF[, 2])
+  rug(DF[, 2], quiet = TRUE)
 
 })
 
