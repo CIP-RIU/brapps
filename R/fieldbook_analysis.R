@@ -409,7 +409,7 @@ fieldbook_analysis_file <- function(input, output, session, values){
 
   volumes <- getVolumes(c("(E:)", "Page File (F:)"))
 
-  shinyFileChoose(input, 'fbaInput', roots=volumes, session=session)
+  shinyFileChoose(input, 'fbaInput', roots = volumes, session=session)
 
   fbInput <- reactive({
     req(input$fbaInput)
