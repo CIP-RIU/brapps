@@ -3,6 +3,7 @@
 export(fieldbook_analysis)
 export(fieldbook_analysisAddin)
 export(fieldbook_analysisInput)
+export(fieldbook_analysis_file)
 export(locations)
 export(locationsAddin)
 export(locationsUI)

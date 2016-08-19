@@ -14,11 +14,9 @@ ui <- dashboardPage(skin = "yellow",
                         menuItem("Phenotype",
                           menuSubItem("Analysis",
                                  tabName = "tab_analysis", icon = icon("map-o"))
-                                 ,
+                                 #,
                                  #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999),
-                                  shinyFiles::shinyFilesButton('fileFB', 'File select',
-                                                       'Please select a fieldbook file', FALSE
-                                  )
+
                           ,
                           HTML("<div style='display:none'>"),
                           shinyURL.ui(label = "",width=0, copyURL = F, tinyURL = F),
@@ -33,31 +31,38 @@ ui <- dashboardPage(skin = "yellow",
                       tabItems(
                         tabItem(tabName = "tab_analysis",
                                 fluidRow(
-                                  column(width = 8,
+                                  column(width = 12,
                                          box(width = NULL,
                                              title = "Fieldbook",
+                                             shinyFiles::shinyFilesButton('fbaInput', 'File select',
+                                                                          'Please select a fieldbook file', FALSE
+                                             ),
                                              #p(class = 'text-center', downloadButton('locsDL', 'Download Filtered Data')),
+                                             #uiOutput("fbList"),
+                                             uiOutput("ui_set_plt"),
+                                             uiOutput("ui_set_rep"),
+                                             uiOutput("ui_set_gen"),
                                              DT::dataTableOutput("hotFieldbook")
                                              #locationsUI("location")
                                          )
                                   )
-                                  ,
-                                  column(width = 4,
-                                         tabBox(width = NULL, title = "Site",
-                                                tabPanel("Histogram",
-                                                         plotOutput("histogram")
-                                                ),
-                                                tabPanel("Info",
-                                                         htmlOutput("siteInfo")
-                                                ), tabPanel("Fieldtrials",
-                                                            htmlOutput("site_fieldtrials")
-                                                ),
-                                                tabPanel("Genotypes",
-                                                         htmlOutput("site_genotypes")
-                                                )
-
-                                         )
-                                  )
+                                  # ,
+                                  # column(width = 4,
+                                  #        tabBox(width = NULL, title = "Site",
+                                  #               tabPanel("Histogram",
+                                  #                        plotOutput("histogram")
+                                  #               ),
+                                  #               tabPanel("Info",
+                                  #                        htmlOutput("siteInfo")
+                                  #               ), tabPanel("Fieldtrials",
+                                  #                           htmlOutput("site_fieldtrials")
+                                  #               ),
+                                  #               tabPanel("Genotypes",
+                                  #                        htmlOutput("site_genotypes")
+                                  #               )
+                                  #
+                                  #        )
+                                  # )
                                 )
                                 ,
                                 fluidRow(
@@ -93,8 +98,8 @@ sv <- function(input, output, session) ({
 
   values <- reactiveValues()
 
-  shinyURL.server()
-  brapps::fieldbook_analysis(input, output, session, values)
+  #shinyURL.server()
+  brapps::fieldbook_analysis_file(input, output, session, values)
 })
 
 shinyApp(ui, sv)

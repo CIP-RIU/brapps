@@ -77,9 +77,6 @@ fieldbook_analysis <- function(input, output, session, values){
 
     fbInput <- reactive({
       req(input$fbaInput)
-      #fbId = dataInput()
-      #print(fbId)
-      #brapi::study_table(input$fbaInput)
       get_study(id = input$fbaInput, amode = amode, crop = crop)
     })
 
@@ -171,6 +168,8 @@ fieldbook_analysis <- function(input, output, session, values){
     })
     DF
   }
+
+
 
 
 output$vcor_output = qtlcharts::iplotCorr_render({
@@ -382,12 +381,351 @@ observeEvent(input$fbRepoDo, {
 
 })
 
-# x <- eventReactive(input$fbRepoDo, {
-#
-#
-# })
+}
+
+
+
+
+
+
+
+#' fieldbook_analysis_file
+#'
+#' @param input shiny
+#' @param output shiny
+#' @param session shiny
+#' @param values shiny
+# @import rhandsontable
+#' @import d3heatmap
+#' @import qtlcharts
+#' @import agricolae
+#' @author Reinhard Simon
+#' @importFrom shinyFiles shinyFileChoose getVolumes parseFilePaths
+#' @importFrom magrittr '%>%'
+#' @importFrom utils read.csv
+# @return data.frame
+#' @export
+fieldbook_analysis_file <- function(input, output, session, values){
+
+  volumes <- getVolumes(c("(E:)", "Page File (F:)"))
+
+  shinyFileChoose(input, 'fbaInput', roots=volumes, session=session)
+
+  fbInput <- reactive({
+    req(input$fbaInput)
+    #req(input$set_gen)
+    mf = parseFilePaths(volumes, input$fbaInput)$datapath
+    mf = as.character(mf)
+
+    dat = NULL
+    try({
+      dat = readxl::read_excel(mf, sheet = "Fieldbook")
+      meta = list(year = NULL,
+                  studyDbId = NULL,
+                  studyName = basename(mf),
+                  locationDbId = NULL,
+                  locationName = NULL,
+                  germplasmName = sort(unique(dat[, input$set_gen])),
+                  plotName= NULL,
+                  names(dat)
+                  )
+
+      attr(dat, "meta") = meta
+    })
+    dat
+  })
+
+  colNms <- reactive({
+    names(fbInput())
+  })
+
+  output$ui_set_plt <- renderUI({
+    req(input$fbaInput)
+    shiny::selectInput("set_plt", "Plot", choices = colNms())
+  })
+
+  output$ui_set_rep <- renderUI({
+    req(input$fbaInput)
+    shiny::selectInput("set_rep", "Replication", choices = colNms())
+  })
+
+  output$ui_set_gen <- renderUI({
+    req(input$fbaInput)
+    shiny::selectInput("set_gty", "Genotype", choices = colNms())
+  })
+
+
+  output$hotFieldbook <- DT::renderDataTable({
+    req(input$fbaInput)
+    fbInput()
+  },  server = FALSE,  extensions = 'FixedColumns',
+  options = list(scrollX = TRUE
+                 # ,
+                 # fixedColumns = list(leftColumns = 6)
+  ),
+  selection = list(target = 'column', mode = "single")
+  )
+
+  phCorr <- function(trait, useMode = "dendo", maxGermplasm = 100, filterTrait = NULL){
+    DF <- fbInput()
+    treat <- input$set_gty
+    if(length(trait) < 2) return(NULL)
+    if(!all(trait %in% names(DF))) return(NULL)
+    DF = DF[, c(treat, trait)]
+    for(i in 2:ncol(DF)){
+      DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
+    }
+
+
+
+    shiny::withProgress(message = 'Imputing missing values', {
+      options(warn = -1)
+      # exclude the response variable and empty variable for RF imputation
+      datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+      x <- DF[, datas]
+      for(i in 1:ncol(x)){
+        x[, i] <- as.numeric(x[, i])
+      }
+      y <- DF[, treat] %>% as.factor
+      if (any(is.na(x))){
+        utils::capture.output(
+          DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
+        )
+        }
+      names(DF)[1] <- treat
+      DF = agricolae::tapply.stat(DF, DF[, treat])
+      DF = DF[, -c(2)]
+      names(DF)[1] = "genotype"  #"germplasmName"
+      row.names(DF) = DF$genotype #DF$germplasmName
+      DF = DF[, -c(1)]
+      options(warn = 0)
+
+    })
+    DF
+  }
+
+
+
+
+  output$vcor_output = qtlcharts::iplotCorr_render({
+    req(input$fbCorrVars)
+    DF <- phCorr(input$fbCorrVars)
+    #str(DF)
+    iplotCorr(DF)
+  })
+
+  output$phHeat_output = d3heatmap::renderD3heatmap({
+    req(input$phHeatCorrVars)
+    DF <- phCorr(input$phHeatCorrVars, useMode = "dendo")
+    par(mar=c(3,1,1,10))
+    d3heatmap::d3heatmap(DF)
+  })
+
+  output$phDend_output = renderPlot({
+    req(input$phDendCorrVars)
+    DF <- phCorr(input$phDendCorrVars, useMode = "dendo")
+
+    dend <- DF %>% dist %>% hclust %>% as.dendrogram()
+
+    par(mar=c(3,1,1,10))
+    plot(dend, horiz = TRUE)
+  })
+
+  output$phDens_output = renderPlot({
+    req(input$phDens)
+
+    #par(mar=c(3,1,1,10))
+    DF <- fbInput()
+    if(!(input$set_rep %in% names(DF))) return(NULL)
+    #if(any(is.null(DF$REP))) return(NULL)
+    titl = input$phDens
+
+    DF <- DF[, c(input$set_rep, titl)]
+    DF[, 2] <- as.numeric(DF[, 2])
+    n = max(DF[, input$set_rep])
+    cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")
+
+    dfrep = DF[, input$set_rep]
+
+    dens <- density(DF[dfrep, 2], na.rm = TRUE)
+    plot(dens, main = titl, ylim = c(0, 0.8))
+    if(n > 1 & n < 6){#Assumption no more than 5 repetitions
+      for(i in 1:n){
+        #print(DF[DF$REP == i, 2])
+        dens <- density(DF[dfrep == i, 2] , na.rm = TRUE)
+        lines(dens, col = cls[i+1])
+      }
+      legend("topright", legend = c("overall", 1:n), title = "Repetition", lty = 1, col = cls[1:(n+1)])
+    }
+    #abline(v = mean(DF[, 2], na.rm = TRUE), lwd = 2, col = "grey30")
+    rug(DF[, input$set_rep], quiet = TRUE)
+
+  })
+
+
+  output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
+    DF = fbInput()
+    #print(str(DF))
+    ci = input$hotFieldbook_columns_selected
+    #print(ci)
+    trt = names(DF)[ncol(DF)]
+    if (!is.null(ci)) trt = names(DF)[ci]
+
+    fm <- fbmaterials::fb_to_map(DF,
+                                 gt = input$set_gty, #"germplasmName", #input[["def_genotype"]],
+                                 #gt = "TRT1",
+                                 variable = trt,
+                                 rep = input$set_rep, #  "REP", #input[["def_rep"]],
+                                 # blk = input[["def_block"]],
+                                 plt = input$set_plt # "PLOT"  #input[["def_plot"]]
+    )
+    amap = fm[["map"]]
+    anot = fm[["notes"]]
+    d3heatmap(x = amap,
+              cellnote = anot,
+              colors = "Blues",
+              Rowv = FALSE, Colv = FALSE,
+              dendrogram = "none")
+  })
+
+
+
+
+  #####################
+
+  #observeEvent(input$butDoPhAnalysis, ({
+
+  get_traits_with_data <- reactive({
+    DF = fbInput()
+    ok = sapply(DF, function(x) sum(is.na(x))) / nrow(DF) < .1
+    ok = names(DF)[ok]
+    ok = ok[stringr::str_detect(ok, " ")]
+    ok
+  })
+
+  get_traits_choice <- reactive({
+    req(input$fbaInput)
+    trts = get_traits_with_data()
+    ci = input$hotFieldbook_columns_selected
+    DF = fbInput()
+    trt_sel = trts[length(trts)]
+    if(!is.null(ci)) {
+      trt_sel = names(DF)[ci]
+    } else
+      if(!(trt_sel %in% trts)){
+        trt_sel = trts[length(trts)]
+      }
+    # add one more trait so a corr matrix can be shown
+    # choose one at random
+    if(length(trts)>=2){
+      trt_sel <- c(trt_sel, trts[!trts %in% trt_sel][1] )
+    }
+
+    list(trts = trts, trt_sel = trt_sel)
+  })
+
+  #### Corr helper
+  output$fbCorrVarsUI <- renderUI({
+    tc = get_traits_choice()
+    selectizeInput("fbCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
+                   multiple = TRUE, width = "100%")
+  })
+
+  output$phHeatCorrVarsUI <- renderUI({
+    tc = get_traits_choice()
+    selectizeInput("phHeatCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
+                   multiple = TRUE, width = "100%")
+  })
+
+  output$phDendCorrVarsUI <- renderUI({
+    tc = get_traits_choice()
+    selectizeInput("phDendCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
+                   multiple = TRUE, width = "100%")
+  })
+
+
+
+  output$aovVarsUI <- renderUI({
+    tc = get_traits_choice()
+    selectizeInput("aovVars", "Select trait(s):", tc$trts, selected = tc$trt_sel,
+                   multiple = TRUE, width = "100%")
+  })
+
+  output$phDensUI <- renderUI({
+    tc = get_traits_choice()
+    selectizeInput("phDens", "Select trait:", tc$trts, selected = tc$trt_sel,
+                   multiple = FALSE, width = "100%")
+
+  })
+
+
+
+  observeEvent(input$fbRepoDo, {
+    output$fbRep <- shiny::renderUI({
+      #print("step 1")
+      DF <- fbInput()
+      trait = input$aovVars
+
+      treat <- input$set_gty #  "germplasmName" #input$def_genotype
+      #trait = input$fbCorrVars
+      if(length(trait) < 1) return(NULL)
+
+      shiny::withProgress(message = 'Imputing missing values', {
+        options(warn = -1)
+
+        DF = DF[, c(treat, "REP",  trait)]
+
+        DF[, treat] <- as.factor(DF[, treat])
+
+        # exclude the response variable and empty variable for RF imputation
+        datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+        x <- DF[, datas]
+        for(i in 1:ncol(x)){
+          x[, i] <- as.numeric(x[, i])
+        }
+        y <- DF[, treat]
+        if (any(is.na(x))){
+          utils::capture.output(
+            DF <- randomForest::rfImpute(x = x, y = y )
+          )
+        }
+        names(DF)[1] <- treat
+      })
+      out = "no report"
+      if(input$expType == "RCBD"){
+        #pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+        out = repo_ana("rcbd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      }
+      if(input$expType == "CRD"){
+        #pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
+        out = repo_ana("crd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      }
+      if(input$expType == "ABD"){
+        #pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+        out = repo_ana("abd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      }
+      if(input$expType == "A01D"){
+        # pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+        #                  data = DF, format = tolower(input$aovFormat))
+        out = repo_ana("a01d", trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+                       data = DF, format = tolower(input$aovFormat))
+
+      }
+      HTML("<a href='", out, "' target='_new'>Report</a>")
+
+    })
+
+
+  })
+
+  # x <- eventReactive(input$fbRepoDo, {
+  #
+  #
+  # })
 
 
 
 }
+
+
 
