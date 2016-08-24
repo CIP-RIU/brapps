@@ -215,14 +215,17 @@ rts4_ui <- function(){
 #'
 #' @export
 rts_ui <- function(id = "rts1"){
+  tagList(
+  h2("Response to selection"),
   shinydashboard::tabBox(id = id,width = NULL,
-         shiny::tabPanel("Response to selection for a single experiment",
+
+         shiny::tabPanel("for a single experiment",
                           rts1_ui()
          ),
-         shiny::tabPanel("Response to selection with several locations",
+         shiny::tabPanel("with several locations",
                          rts2_ui()
          ),
-         shiny::tabPanel("Response to selection with several locations and years",
+         shiny::tabPanel("with several locations and years",
                          rts3_ui()
          )
          # ),
@@ -230,6 +233,6 @@ rts_ui <- function(id = "rts1"){
          #                 rts4_ui()
          # )
   )
-
+)
 
 }
