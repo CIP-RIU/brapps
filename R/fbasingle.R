@@ -13,7 +13,8 @@ fbasingle_ui <- function(title){
       column(width = 12,
              box(width = NULL, collapsible = TRUE,
                  title = "Fieldbook",
-                 uiOutput("fbList")
+                 uiOutput("fbList"),
+                 DT::dataTableOutput("hotFieldbook")
              )
       )
     )
