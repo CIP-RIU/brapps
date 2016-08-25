@@ -113,8 +113,8 @@ fieldbook_analysis <- function(input, output, session, values){
   selection = list(target = 'column', mode = "single")
   )
 
-  phCorr <- function(trait, useMode = "dendo", maxGermplasm = 100, filterTrait = NULL){
-    DF <- fbInput()
+  phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
+
     treat <- "germplasmName" #input$def_genotype
     #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
     #trait = input$fbCorrVars
@@ -137,7 +137,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
 
-    shiny::withProgress(message = 'Imputing missing values', {
+
       options(warn = -1)
       # exclude the response variable and empty variable for RF imputation
       datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
@@ -150,13 +150,7 @@ fieldbook_analysis <- function(input, output, session, values){
         utils::capture.output(
           DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
         )
-        #x = FastImputation::UnfactorColumns(x)
-        #x = sapply(x, as.numeric) %>% as.data.frame
-
-        #TODO add restrictions
-        # patterns = FastImputation::TrainFastImputation(x)
-        # DF = FastImputation::FastImputation(x, patterns)
-      }
+       }
       names(DF)[1] <- treat
       DF = agricolae::tapply.stat(DF, DF[, treat])
       DF = DF[, -c(2)]
@@ -165,31 +159,40 @@ fieldbook_analysis <- function(input, output, session, values){
       DF = DF[, -c(1)]
       options(warn = 0)
 
-    })
+    #})
     DF
   }
-
+# end phCorr
 
 
 
 output$vcor_output = qtlcharts::iplotCorr_render({
   req(input$fbCorrVars)
-  DF <- phCorr(input$fbCorrVars)
+  DF <- fbInput()
+  shiny::withProgress(message = 'Imputing missing values', {
+    DF <- phCorr(DF, input$fbCorrVars)
+  })
   #str(DF)
   iplotCorr(DF)
 })
 
 output$phHeat_output = d3heatmap::renderD3heatmap({
   req(input$phHeatCorrVars)
-  DF <- phCorr(input$phHeatCorrVars, useMode = "dendo")
+  DF <- fbInput()
+  shiny::withProgress(message = 'Imputing missing values', {
+    DF <- phCorr(DF, input$phHeatCorrVars, useMode = "dendo")
+  })
+  #print(head(DF))
   par(mar=c(3,1,1,10))
-  d3heatmap::d3heatmap(DF)
+  d3heatmap::d3heatmap(DF, theme = "dark", colors = "Blues")
 })
 
 output$phDend_output = renderPlot({
   req(input$phDendCorrVars)
-  DF <- phCorr(input$phDendCorrVars, useMode = "dendo")
-
+  DF <- fbInput()
+  shiny::withProgress(message = 'Imputing missing values', {
+    DF <- phCorr(DF, input$phDendCorrVars, useMode = "dendo")
+  })
   dend <- DF %>% dist %>% hclust %>% as.dendrogram()
 
   par(mar=c(3,1,1,10))
