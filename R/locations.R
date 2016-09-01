@@ -291,7 +291,7 @@ locations <- function(input, output, session, values){
 
     #TODO get amode from user input
 
-    amode = "demo"
+    amode = "Default"
 
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
     #print(mode)
@@ -351,7 +351,7 @@ locations <- function(input, output, session, values){
     #if(!is.null(get_geo_mark())){
 
     # TODO get this from user input demo/brapi
-    amode = "demo"
+    amode = "Default"
 
     withProgress(message = 'Getting trial list ...', value = 0, max = 10, {
       sid = get_trials_for_location(amode, crop)

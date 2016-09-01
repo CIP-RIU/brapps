@@ -86,12 +86,12 @@ fbasingle_ui <- function(title){
                                 get_crops(),
                                 inline = TRUE),
                    radioButtons("fba_src_type", "Select a source type",
-                                list("Demo" = "demo"
+                                list("Default" = "Default"
                                      #,
                                      #"Database (using BrAPI)" = "brapi"
                                      #,"File" = "local"
                                      ),
-                                "demo",
+                                "Default",
                                 inline = TRUE),
                    uiOutput("fbList"),
                    uiOutput("fbParams")

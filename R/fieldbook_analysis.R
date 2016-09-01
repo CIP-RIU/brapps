@@ -107,7 +107,7 @@ fieldbook_analysis <- function(input, output, session, values){
         sl = get_sl_from_brapi()
       }
 
-      if( input$fba_src_type == "demo"){
+      if( input$fba_src_type == "Default"){
         bd = fbglobal::fname_fieldbooks(crop = input$fba_src_crop)
         sl = list.files(bd)
       }
@@ -122,7 +122,7 @@ fieldbook_analysis <- function(input, output, session, values){
     output$fbParams <- renderUI({
       req(input$fbaInput)
       out = NULL
-      if( input$fba_src_type == "demo"){
+      if( input$fba_src_type == "Default"){
         # add list of standard params genotype, plot, block, traits
         cn = colnames(fbInput()) %>% toupper()
         gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GENO|GERMPLASMNAME|CIPNUMBER"))[1]
