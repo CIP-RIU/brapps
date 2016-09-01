@@ -3,7 +3,10 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
 
   bd = get_base_data(acrop = crop, amode = amode)
   lf = list.files(bd, recursive =  TRUE, full.names = TRUE)
-  fn = paste0(id, ".rda")
+  fn = id
+  if(!stringr::str_detect(id, ".rda")){
+    fn = paste0(fn, ".rda")
+  }
   fp = lf[which(stringr::str_detect(lf, fn))]
   if(length(fp) == 0) {
     if(length(year) == 0){
@@ -30,7 +33,7 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
       stdy = readRDS(file = fp)
     }
   })
-  if(is.null(stdy)){
+  if(is.null(stdy) & amode == "brapi"){
     if(can_internet() ){
       stdy = brapi::study_table(id)
       saveRDS(stdy, fp)

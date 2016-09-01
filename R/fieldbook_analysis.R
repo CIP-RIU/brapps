@@ -77,7 +77,9 @@ fieldbook_analysis <- function(input, output, session, values){
 
     fbInput <- reactive({
       req(input$fbaInput)
-      get_study(id = input$fbaInput, amode = amode, crop = crop)
+
+      #get_study(id = input$fbaInput, amode = amode, crop = crop)
+      get_study(id = input$fbaInput, amode = input$fba_src_type, crop = input$fba_src_crop)
     })
 
     fbList <- reactive({
@@ -93,12 +95,57 @@ fieldbook_analysis <- function(input, output, session, values){
     })
 
     output$fbList <- renderUI({
-          sts = fbList()
-          if(is.null(sts)) return()
-          sl = as.list(sts$studyDbId)
-          names(sl) = sts$name
-          selectInput("fbaInput", "Fieldbook", choices = sl)
-        })
+      get_sl_from_brapi <- function(){
+        sts = fbList()
+        if(is.null(sts)) return()
+        sl = as.list(sts$studyDbId)
+        names(sl) = sts$name
+        sl
+      }
+      sl = NULL
+      if( input$fba_src_type == "brapi"){
+        sl = get_sl_from_brapi()
+      }
+
+      if( input$fba_src_type == "demo"){
+        bd = fbglobal::fname_fieldbooks(crop = input$fba_src_crop)
+        sl = list.files(bd)
+      }
+      out = NULL
+      set_fb = NULL
+      if(!is.null(sl)) {
+        set_fb = selectInput("fbaInput", "Fieldbook", choices = sl)
+      }
+      set_fb
+    })
+
+    output$fbParams <- renderUI({
+      req(input$fbaInput)
+      out = NULL
+      if( input$fba_src_type == "demo"){
+        # add list of standard params genotype, plot, block, traits
+        cn = colnames(fbInput()) %>% toupper()
+        gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GENO|GERMPLASMNAME|CIPNUMBER"))[1]
+        bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
+        rpi= which(stringr::str_detect(cn, "REP" ))[1]
+        pti= which(stringr::str_detect(cn, "PLOT|PLT" ))[1]
+        ci = 1:length(cn)
+        tti= ci[!ci %in% c(gti, bki, rpi, pti)]
+        out = tagList(
+          fluidRow(width = 12,
+            column(width = 3, selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[gti]) ),
+            column(width = 3, selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[bki])),
+            column(width = 3, selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[pti]) ),
+            column(width = 3, selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[rpi]) )
+          )
+          ,
+          fluidRow(width = 12,
+            column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn, selected = cn[tti], multiple = TRUE))
+          )
+        )
+      }
+      out
+    })
 
 
 
@@ -115,7 +162,9 @@ fieldbook_analysis <- function(input, output, session, values){
 
   phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
 
-    treat <- "germplasmName" #input$def_genotype
+    #treat <- "germplasmName" #input$def_genotype
+    treat <- input$fba_set_gen
+    #trait <- input$fba_set_trt
     #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
     #trait = input$fbCorrVars
     #print(length(trait))
@@ -168,6 +217,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
 output$vcor_output = qtlcharts::iplotCorr_render({
   req(input$fbCorrVars)
+  req(length(input$fbCorrVars) > 1)
   DF <- fbInput()
   shiny::withProgress(message = 'Imputing missing values', {
     DF <- phCorr(DF, input$fbCorrVars)
@@ -178,6 +228,7 @@ output$vcor_output = qtlcharts::iplotCorr_render({
 
 output$phHeat_output = d3heatmap::renderD3heatmap({
   req(input$phHeatCorrVars)
+  req(length(input$phHeatCorrVars) > 1)
   DF <- fbInput()
   shiny::withProgress(message = 'Imputing missing values', {
     DF <- phCorr(DF, input$phHeatCorrVars, useMode = "dendo")
@@ -189,6 +240,7 @@ output$phHeat_output = d3heatmap::renderD3heatmap({
 
 output$phDend_output = renderPlot({
   req(input$phDendCorrVars)
+  req(length(input$phDendCorrVars) > 1)
   DF <- fbInput()
   shiny::withProgress(message = 'Imputing missing values', {
     DF <- phCorr(DF, input$phDendCorrVars, useMode = "dendo")
@@ -238,12 +290,12 @@ output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
   if (!is.null(ci)) trt = names(DF)[ci]
 
   fm <- fbmaterials::fb_to_map(DF,
-                               gt = "germplasmName", #input[["def_genotype"]],
+                               gt = input$fba_set_gen, #"germplasmName", #input[["def_genotype"]],
                                #gt = "TRT1",
                                variable = trt,
-                               rep = "REP", #input[["def_rep"]],
+                               rep = input$fba_set_rep, #"REP", #input[["def_rep"]],
                                # blk = input[["def_block"]],
-                               plt = "PLOT"  #input[["def_plot"]]
+                               plt = input$fba_set_plt #"PLOT"  #input[["def_plot"]]
   )
   amap = fm[["map"]]
   anot = fm[["notes"]]
@@ -271,23 +323,27 @@ get_traits_with_data <- reactive({
 
 get_traits_choice <- reactive({
   req(input$fbaInput)
-  trts = get_traits_with_data()
-  ci = input$hotFieldbook_columns_selected
-  DF = fbInput()
-  trt_sel = trts[length(trts)]
-  if(!is.null(ci)) {
-    trt_sel = names(DF)[ci]
-  } else
-    if(!(trt_sel %in% trts)){
-      trt_sel = trts[length(trts)]
-    }
-  # add one more trait so a corr matrix can be shown
-  # choose one at random
-  if(length(trts)>=2){
-    trt_sel <- c(trt_sel, trts[!trts %in% trt_sel][1] )
-  }
-
-  list(trts = trts, trt_sel = trt_sel)
+  #req(input$fba_set_trt)
+  # trts = get_traits_with_data()
+  # ci = input$hotFieldbook_columns_selected
+  # DF = fbInput()
+  # trt_sel = trts[length(trts)]
+  # if(!is.null(ci)) {
+  #   trt_sel = names(DF)[ci]
+  # } else
+  #   if(!(trt_sel %in% trts)){
+  #     trt_sel = trts[length(trts)]
+  #   }
+  # # add one more trait so a corr matrix can be shown
+  # # choose one at random
+  # if(length(trts)>=2){
+  #   trt_sel <- c(trt_sel, trts[!trts %in% trt_sel][1] )
+  # }
+  #
+  # list(trts = trts, trt_sel = trt_sel)
+  trts = input$fba_set_trt
+  trtsel = trts[length(trts)]
+  list(trts = trts, trt_sel = trtsel )
 })
 
 #### Corr helper
@@ -332,14 +388,16 @@ observeEvent(input$fbRepoDo, {
     DF <- fbInput()
     trait = input$aovVars
 
-    treat <- "germplasmName" #input$def_genotype
+    treat <- input$fba_set_gen #"germplasmName" #input$def_genotype
     #trait = input$fbCorrVars
     if(length(trait) < 1) return(NULL)
 
     shiny::withProgress(message = 'Imputing missing values', {
       options(warn = -1)
+      REP = input$fba_set_rep
+      GEN = input$fba_set_gen
 
-      DF = DF[, c(treat, "REP",  trait)]
+      DF = DF[, c(treat, REP,  trait)]
 
       DF[, treat] <- as.factor(DF[, treat])
 
@@ -360,20 +418,20 @@ observeEvent(input$fbRepoDo, {
     out = "no report"
     if(input$expType == "RCBD"){
       #pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("rcbd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      out = repo_ana("rcbd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "CRD"){
       #pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("crd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      out = repo_ana("crd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "ABD"){
       #pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("abd", trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+      out = repo_ana("abd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
     }
     if(input$expType == "A01D"){
       # pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
       #                  data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("a01d", trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+      out = repo_ana("a01d", trait, geno = GEN, rep = REP, block = input$fba_block, k = input$k,
                data = DF, format = tolower(input$aovFormat))
 
     }
