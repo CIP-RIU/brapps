@@ -89,9 +89,9 @@ fbasingle_ui <- function(title){
                                 list("Default" = "Default"
                                      #,
                                      #"Database (using BrAPI)" = "brapi"
-                                     #,"File" = "local"
+                                     #,"File" = "Local"
                                      ),
-                                "Default",
+                                "Local",
                                 inline = TRUE),
                    uiOutput("fbList"),
                    uiOutput("fbParams")

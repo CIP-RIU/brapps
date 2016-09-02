@@ -297,7 +297,7 @@ locations <- function(input, output, session, values){
     #print(mode)
     #print(crop)
     sid = get_trials_for_location(amode = amode, crop = crop)
-    print(sid)
+    #print(sid)
     if(is.null(sid)){
       out = msg_no_loc
     } else {

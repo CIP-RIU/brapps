@@ -59,7 +59,7 @@ repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, blo
 #' @import qtlcharts
 #' @import agricolae
 #' @author Reinhard Simon
-#' @importFrom shinyFiles shinyFileChoose getVolumes parseFilePaths
+#' @importFrom shinyFiles shinyFileChoose getVolumes parseFilePaths shinyFilesButton
 #' @importFrom magrittr '%>%'
 #' @importFrom utils read.csv
 # @return data.frame
@@ -67,6 +67,14 @@ repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, blo
 fieldbook_analysis <- function(input, output, session, values){
   crop = isolate(values$crop)
   amode = isolate(values$amode)
+
+  #vols <- getVolumes(c("(E:)", "Page File (F:)"))
+  #vols <- c('R Installation'=R.home())
+  vols <- c(root='.')
+  #print(vols)
+  shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes=c('', 'xls', 'xlsx')
+  )
+
 
   brapi_host = brapi$db
 
@@ -77,8 +85,6 @@ fieldbook_analysis <- function(input, output, session, values){
 
     fbInput <- reactive({
       req(input$fbaInput)
-
-      #get_study(id = input$fbaInput, amode = amode, crop = crop)
       get_study(id = input$fbaInput, amode = input$fba_src_type, crop = input$fba_src_crop)
     })
 
@@ -95,6 +101,12 @@ fieldbook_analysis <- function(input, output, session, values){
     })
 
     output$fbList <- renderUI({
+      req(input$fba_src_type)
+      if(input$fba_src_type == "Local"){
+        return(shinyFilesButton('fb_Input',
+                                label = 'File select',
+                                title = 'Please select a file', multiple=FALSE))
+      }
       get_sl_from_brapi <- function(){
         sts = fbList()
         if(is.null(sts)) return()
@@ -107,10 +119,12 @@ fieldbook_analysis <- function(input, output, session, values){
         sl = get_sl_from_brapi()
       }
 
+      withProgress( message = "Getting trials", {
       if( input$fba_src_type == "Default"){
-        bd = fbglobal::fname_fieldbooks(crop = input$fba_src_crop)
-        sl = list.files(bd)
+          bd = fbglobal::fname_fieldbooks(crop = input$fba_src_crop)
       }
+      })
+      sl = list.files(bd)
       out = NULL
       set_fb = NULL
       if(!is.null(sl)) {
@@ -119,11 +133,8 @@ fieldbook_analysis <- function(input, output, session, values){
       set_fb
     })
 
-    output$fbParams <- renderUI({
-      req(input$fbaInput)
-      out = NULL
-      if( input$fba_src_type == "Default"){
-        # add list of standard params genotype, plot, block, traits
+    gather_params <- function(){
+      withProgress(message = "Getting trial info ...", {
         cn = colnames(fbInput()) %>% toupper()
         gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GENO|GERMPLASMNAME|CIPNUMBER"))[1]
         bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
@@ -133,25 +144,42 @@ fieldbook_analysis <- function(input, output, session, values){
         tti= ci[!ci %in% c(gti, bki, rpi, pti)]
         out = tagList(
           fluidRow(width = 12,
-            column(width = 3, selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[gti]) ),
-            column(width = 3, selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[bki])),
-            column(width = 3, selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[pti]) ),
-            column(width = 3, selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[rpi]) )
+                   column(width = 3, selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[gti]) ),
+                   column(width = 3, selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[bki])),
+                   column(width = 3, selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[pti]) ),
+                   column(width = 3, selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[rpi]) )
           )
           ,
           fluidRow(width = 12,
-            column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn, selected = cn[tti], multiple = TRUE))
+                   column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn, selected = cn[tti], multiple = TRUE))
           )
         )
+      })
+    out
+
+    }
+
+
+    output$fbParams <- renderUI({
+      req(input$fbaInput)
+      #print(input$fbaInput)
+      out = NULL
+      if( input$fba_src_type == "Default") return(gather_params())
+      if( input$fba_src_type == "Local") {
+
+
+        if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
       }
-      out
     })
 
 
 
   output$hotFieldbook <- DT::renderDataTable({
     req(input$fbaInput)
-    fbInput()
+    withProgress(message = "Getting trial data ...", {
+      fbInput()
+    })
+
   },  server = FALSE,  extensions = 'FixedColumns',
   options = list(scrollX = TRUE
                  # ,
