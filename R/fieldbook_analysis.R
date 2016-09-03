@@ -68,24 +68,29 @@ fieldbook_analysis <- function(input, output, session, values){
   crop = isolate(values$crop)
   amode = isolate(values$amode)
 
-  #vols <- getVolumes(c("(E:)", "Page File (F:)"))
+  vols <- getVolumes(c("(E:)", "Page File (F:)"))
   #vols <- c('R Installation'=R.home())
-  vols <- c(root='.')
+  #vols <- c(root = "C:", "D:")
   #print(vols)
-  shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes=c('', 'xls', 'xlsx')
-  )
+  shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes=c('', 'xls', 'xlsx'))
+
 
 
   brapi_host = brapi$db
 
     dataInput <- reactive({
       fbId = input$fbaInput
+      if(input$fba_src_type == "Local"){
+        fbId = parseFilePaths(vols, input$fb_Input)
+        updateSelectInput(session, "fbaInput", fbId, fbId)
+      }
       fbId
     })
 
     fbInput <- reactive({
       req(input$fbaInput)
-      get_study(id = input$fbaInput, amode = input$fba_src_type, crop = input$fba_src_crop)
+      #get_study(id = input$fbaInput, amode = input$fba_src_type, crop = input$fba_src_crop)
+      get_study(id = dataInput(), amode = input$fba_src_type, crop = input$fba_src_crop)
     })
 
     fbList <- reactive({
@@ -100,14 +105,11 @@ fieldbook_analysis <- function(input, output, session, values){
       })
     })
 
-    output$fbList <- renderUI({
+    # output$fbList <- renderUI({
+    #
+    observe({
       req(input$fba_src_type)
-      if(input$fba_src_type == "Local"){
-        return(shinyFilesButton('fb_Input',
-                                label = 'File select',
-                                title = 'Please select a file', multiple=FALSE))
-      }
-      get_sl_from_brapi <- function(){
+       get_sl_from_brapi <- function(){
         sts = fbList()
         if(is.null(sts)) return()
         sl = as.list(sts$studyDbId)
@@ -119,19 +121,28 @@ fieldbook_analysis <- function(input, output, session, values){
         sl = get_sl_from_brapi()
       }
 
-      withProgress( message = "Getting trials", {
+
       if( input$fba_src_type == "Default"){
+        withProgress( message = "Getting trials", {
           bd = fbglobal::fname_fieldbooks(crop = input$fba_src_crop)
+          sl = list.files(bd)
+        })
       }
-      })
-      sl = list.files(bd)
-      out = NULL
-      set_fb = NULL
-      if(!is.null(sl)) {
-        set_fb = selectInput("fbaInput", "Fieldbook", choices = sl)
+      if( input$fba_src_type == "Local"){
+        bd = dataInput()
+        sl = bd
       }
-      set_fb
+
+      # out = NULL
+      # set_fb = NULL
+      if(!is.null(bd)) {
+        set_fb = updateSelectInput(session, "fbaInput", "Fieldbook", choices = sl)
+      }
+      #set_fb
     })
+
+
+
 
     gather_params <- function(){
       withProgress(message = "Getting trial info ...", {

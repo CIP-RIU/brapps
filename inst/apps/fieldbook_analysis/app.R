@@ -1,8 +1,8 @@
 #library(shiny)
-library(brapi)
+#library(brapi)
 library(brapps)
 library(shinydashboard)
-library(d3heatmap)
+#library(d3heatmap)
 #library(rhandsontable)
 library(shinyURL)
 library(shinyFiles)
@@ -43,10 +43,10 @@ sv <- function(input, output, session) ({
 
   values <- shiny::reactiveValues(crop = "sweetpotato", amode = "brapi")
 
-  brapi_con("sweetpotato", "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu",
-            80, "rsimon16",
-            "sweetpotato")
-
+  # brapi_con("sweetpotato", "sgn:eggplant@sweetpotatobase-test.sgn.cornell.edu",
+  #           80, "rsimon16",
+  #           "sweetpotato")
+  #
 
   #shinyURL.server()
   brapps::fieldbook_analysis(input, output, session, values)

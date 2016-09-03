@@ -4,8 +4,11 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
   # if amode == Local just read in an excel file (assume DC format for the moment)
 
   bd = get_base_data(acrop = crop, amode = amode)
+  #print(paste("bd", bd))
   lf = list.files(bd, recursive =  TRUE, full.names = TRUE)
+  #print(paste("lf", lf))
   fn = id
+  #print(paste("fn", fn))
   if(!stringr::str_detect(id, ".rda")){
     fn = paste0(fn, ".rda")
   }

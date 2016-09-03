@@ -82,19 +82,35 @@ fbasingle_ui <- function(title){
                  title = "Data",
                  tabBox("Details", width = 12,
                   tabPanel("Source",
-                   radioButtons("fba_src_crop", "Select a crop",
-                                get_crops(),
-                                inline = TRUE),
-                   radioButtons("fba_src_type", "Select a source type",
-                                list("Default" = "Default"
-                                     #,
-                                     #"Database (using BrAPI)" = "brapi"
-                                     #,"File" = "Local"
-                                     ),
-                                "Local",
-                                inline = TRUE),
-                   uiOutput("fbList"),
+                   fluidRow(
+                     column(width = 3,
+                            radioButtons("fba_src_crop", "Select a crop",
+                                         get_crops(),
+                                         inline = TRUE)
+                            ),
+                     column(width = 3,
+                            radioButtons("fba_src_type", "Select a source type",
+                                         list("Default" = "Default"
+                                              #,
+                                              #"Database (using BrAPI)" = "brapi"
+                                              ,"File" = "Local"
+                                         ),
+                                         "Local",
+                                         inline = TRUE),
+                            conditionalPanel(
+                              condition = "input.fba_src_type == 'Local'",
+                              shinyFilesButton('fb_Input',
+                                               label = 'File select',
+                                               title = 'Please select a file', multiple=FALSE)
+                            )
+                            ),
+                    column(width = 6,
+                           #uiOutput("fbList")
+                           selectInput("fbaInput", "Fieldbook", choices = NULL)
+                           )
+                   ),
                    uiOutput("fbParams")
+
                  ),
                  tabPanel("Fieldbook",
                   DT::dataTableOutput("hotFieldbook")
