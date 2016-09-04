@@ -69,20 +69,33 @@ fieldbook_analysis <- function(input, output, session, values){
   amode = isolate(values$amode)
 
   vols <- getVolumes(c("(E:)", "Page File (F:)"))
-  #vols <- c('R Installation'=R.home())
-  #vols <- c(root = "C:", "D:")
-  #print(vols)
   shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes=c('', 'xls', 'xlsx'))
 
-
-
   brapi_host = brapi$db
+
+    observeEvent(input$fba_src_type,{
+      print("Change of type!")
+      print(input$fba_src_type)
+      print(input$fbaInput)
+      updateSelectInput(session, "fbaInput", choices = NULL, selected = NULL)
+      print(input$fbaInput)
+    }
+    )
 
     dataInput <- reactive({
       fbId = input$fbaInput
       if(input$fba_src_type == "Local"){
-        fbId = parseFilePaths(vols, input$fb_Input)
-        updateSelectInput(session, "fbaInput", fbId, fbId)
+        fbIdf = parseFilePaths(vols, input$fb_Input)
+        #print(fbIdf)
+        if(nrow(fbIdf) != 0){
+          fbn = fbIdf$name[1] %>% as.character
+          fbp = fbIdf$datapath[1] %>% as.character
+          #fbId = list(fbn, fbp)
+          #print(fbn[[1]])
+          #print(str(fbn))
+          fbId = fbp[[1]][1]
+          updateSelectInput(session, "fbaInput", fbId, fbId)
+        } else  fbId = NULL
       }
       fbId
     })
@@ -94,14 +107,19 @@ fieldbook_analysis <- function(input, output, session, values){
     })
 
     fbList <- reactive({
+      req(input$fba_src_type)
+      sts = NULL
       shiny::withProgress(message = 'Gathering info ...', {
       if(brapi::can_internet()){
         sts = brapi::studies()
-      } else {
+        sts[sts$studyType != "", ]
+      }
+      if(input$fba_src_tye == "Demo"){
         sts <- get_all_studies() # to improve using demo as backfall
+
       }
 
-      sts[sts$studyType != "", ]
+      sts
       })
     })
 
@@ -109,6 +127,7 @@ fieldbook_analysis <- function(input, output, session, values){
     #
     observe({
       req(input$fba_src_type)
+
        get_sl_from_brapi <- function(){
         sts = fbList()
         if(is.null(sts)) return()

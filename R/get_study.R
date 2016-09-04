@@ -2,12 +2,17 @@
 get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
 
   # if amode == Local just read in an excel file (assume DC format for the moment)
+  if(is.null(id)) return(NULL)
+  if(amode == "Local" & stringr::str_detect(id[[1]], "xls")){
+    stdy = readxl::read_excel(id, "Fieldbook")
+    return(stdy)
+  }
 
   bd = get_base_data(acrop = crop, amode = amode)
   #print(paste("bd", bd))
   lf = list.files(bd, recursive =  TRUE, full.names = TRUE)
   #print(paste("lf", lf))
-  fn = id
+  fn = id[[1]]
   #print(paste("fn", fn))
   if(!stringr::str_detect(id, ".rda")){
     fn = paste0(fn, ".rda")

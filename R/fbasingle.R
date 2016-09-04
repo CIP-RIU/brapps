@@ -99,6 +99,7 @@ fbasingle_ui <- function(title){
                                          inline = TRUE),
                             conditionalPanel(
                               condition = "input.fba_src_type == 'Local'",
+
                               shinyFilesButton('fb_Input',
                                                label = 'File select',
                                                title = 'Please select a file', multiple=FALSE)
