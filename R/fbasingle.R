@@ -28,6 +28,7 @@ visuals <- function(){
                   ),
 
                   tabPanel("Map",
+                           uiOutput("phFieldMapVarsUI"),
                            d3heatmap::d3heatmapOutput("fieldbook_heatmap")
                   )
                   ,
@@ -106,8 +107,15 @@ fbasingle_ui <- function(title){
                             )
                             ),
                     column(width = 6,
-                           #uiOutput("fbList")
-                           selectInput("fbaInput", "Fieldbook", choices = NULL)
+                           conditionalPanel(
+                             condition = "input.fba_src_type != 'Local'",
+                             selectInput("fbaInput", "Fieldbook", choices = NULL)
+                           ),
+                           conditionalPanel(
+                             condition = "input.fba_src_type == 'Local'",
+                             verbatimTextOutput('filepaths')
+                           )
+
                            )
                    ),
                    uiOutput("fbParams")

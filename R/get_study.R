@@ -4,7 +4,11 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
   # if amode == Local just read in an excel file (assume DC format for the moment)
   if(is.null(id)) return(NULL)
   if(amode == "Local" & stringr::str_detect(id[[1]], "xls")){
-    stdy = readxl::read_excel(id, "Fieldbook")
+    stdy = NULL
+    try({
+      stdy = readxl::read_excel(id, "Fieldbook")
+      colnames(stdy) = toupper(colnames(stdy))
+    })
     return(stdy)
   }
 
@@ -49,5 +53,6 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
       saveRDS(stdy, fp)
     }
   }
+  colnames(stdy) = toupper(colnames(stdy))
   stdy
 }
