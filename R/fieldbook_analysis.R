@@ -214,18 +214,20 @@ fieldbook_analysis <- function(input, output, session, values){
     req(aFilePath())
     withProgress(message = "Getting trial data ...", {
       DF = fbInput()
-      cnm = c(input$fba_set_plt, input$fba_set_blk, input$fba_set_gen, input$fba_set_trt )
-       if (("NA" %in% cnm)) {
-        cnm = c(input$fba_set_plt, input$fba_set_gen, input$fba_set_trt )
-       }
-      # print(cnm)
-      # print(colnames(DF))
-      out = DF
-      try({
-        out = DF[, cnm]
-      })
+      # cnm = c(input$fba_set_plt, input$fba_set_blk, input$fba_set_gen, input$fba_set_trt )
+      #  if (("NA" %in% cnm)) {
+      #   cnm = c(input$fba_set_plt, input$fba_set_gen, input$fba_set_trt )
+      #  }
+      # # print(cnm)
+      # # print(colnames(DF))
+      # out = DF
+      # try({
+      #   out = DF[, cnm]
+      # })
+      #
+      # out
 
-      out
+      DF
     })
 
   },  server = FALSE,  extensions = 'FixedColumns',
@@ -284,24 +286,35 @@ fieldbook_analysis <- function(input, output, session, values){
 
     trt = input$phFieldMapVars
     if(is.null(trt)) return(NULL)
-    DF = fbInput()
-    if(is.null(DF)) return(NULL)
+    fm_DF = fbInput()
+    if(is.null(fm_DF)) return(NULL)
+    # print(colnames(fm_DF))
+    # print(str(fm_DF))
+    # print(input$fba_set_rep)
+
+    REP = "REP"
+    try({
+      REP = input$fba_set_rep
+      # print(REP)
+    })
+    # print(REP)
 
     ##if (!is.null(ci)) trt = names(DF)[ci]
 
-    fm <- fbmaterials::fb_to_map(DF,
+    fm <- fbmaterials::fb_to_map(fm_DF,
                                  gt = input$fba_set_gen, #"germplasmName", #input[["def_genotype"]],
                                  #gt = "TRT1",
-                                 variable = trt,
-                                 rep = input$fba_set_rep, #"REP", #input[["def_rep"]],
+
+                                 rep = REP, #"REP", #input[["def_rep"]],
                                  # blk = input[["def_block"]],
-                                 plt = input$fba_set_plt #"PLOT"  #input[["def_plot"]]
+                                 plt = input$fba_set_plt, #"PLOT"  #input[["def_plot"]]
+                                 variable = trt
     )
     amap = fm[["map"]]
     anot = fm[["notes"]]
     d3heatmap(x = amap,
               cellnote = anot,
-              colors = "Blues",
+              theme = "dark", colors = "Blues",
               Rowv = FALSE, Colv = FALSE,
               dendrogram = "none")
   })
