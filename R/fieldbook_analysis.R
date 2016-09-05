@@ -71,9 +71,9 @@ fieldbook_analysis <- function(input, output, session, values){
   aFilePath = reactive({!is.null(input$fbaInput) | !is.null(input$filepath)})
 
   vols <- getVolumes(c("(E:)", "Page File (F:)"))
-  shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes=c('', 'xls', 'xlsx'))
+  shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes = c('', 'xls', 'xlsx'))
 
-  brapi_host = brapi$db
+  #brapi_host = brapi$db
 
     # observeEvent(input$fba_src_type,{
     #   print("Change of type!")
@@ -85,7 +85,8 @@ fieldbook_analysis <- function(input, output, session, values){
     # )
 
     dataInput <- reactive({
-      req(aFilePath)
+      #req(aFilePath)
+      req(input$fbaInput)
       fbId = input$fbaInput
       if(input$fba_src_type == "Local"){
         fbIdf = parseFilePaths(vols, input$fb_Input)
@@ -102,10 +103,22 @@ fieldbook_analysis <- function(input, output, session, values){
 
     fbInput <- reactive({
       #req(input$fbaInput)
-      req(aFilePath())
+      #req(aFilePath())
       #get_study(id = input$fbaInput, amode = input$fba_src_type, crop = input$fba_src_crop)
       get_study(id = dataInput(), amode = input$fba_src_type, crop = input$fba_src_crop)
+
     })
+
+
+    get_traits_with_data <- reactive({
+      DF = fbInput()
+      ok = sapply(DF, function(x) sum(is.na(x))) / nrow(DF) < .1
+      ok = names(DF)[ok]
+      ok = ok[stringr::str_detect(ok, " ")]
+      ok
+    })
+
+
 
     fbList <- reactive({
       req(input$fba_src_type)
@@ -115,9 +128,9 @@ fieldbook_analysis <- function(input, output, session, values){
         sts = brapi::studies()
         sts[sts$studyType != "", ]
       }
-      if(input$fba_src_tye == "Demo"){
-        sts <- get_all_studies() # to improve using demo as backfall
-
+      if(input$fba_src_type == "Default"){
+        sts <- get_all_studies(amode = "Default") # to improve using demo as backfall
+        print(sts)
       }
 
       sts
@@ -186,7 +199,9 @@ fieldbook_analysis <- function(input, output, session, values){
           )
           ,
           fluidRow(width = 12,
-                   column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn, selected = cn[tti], multiple = TRUE))
+                   column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn
+                                                 , selected = cn[length(cn)]
+                                                 , multiple = TRUE))
           )
         )
       })
@@ -198,8 +213,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     output$fbParams <- renderUI({
-
-      req(aFilePath())
+      #req(aFilePath())
       req(input$fbaInput)
       #print(input$fbaInput)
       out = NULL
@@ -212,32 +226,17 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
   output$hotFieldbook <- DT::renderDataTable({
-    #req(input$fbaInput)
-    req(aFilePath())
-    withProgress(message = "Getting trial data ...", {
-      DF = fbInput()
-      # cnm = c(input$fba_set_plt, input$fba_set_blk, input$fba_set_gen, input$fba_set_trt )
-      #  if (("NA" %in% cnm)) {
-      #   cnm = c(input$fba_set_plt, input$fba_set_gen, input$fba_set_trt )
-      #  }
-      # # print(cnm)
-      # # print(colnames(DF))
-      # out = DF
-      # try({
-      #   out = DF[, cnm]
-      # })
-      #
-      # out
-
-      DF
+    withProgress(message = "Loading table ...", {
+      fbInput()
     })
-
-  },  server = FALSE,  extensions = 'FixedColumns',
+  }
+  ,  server = TRUE,  extensions = 'FixedColumns',
   options = list(scrollX = TRUE
                  # ,
                  # fixedColumns = list(leftColumns = 6)
-  ),
-  selection = list(target = 'column', mode = "single")
+  )
+  #,
+  # selection = list(target = 'column', mode = "single")
   )
 
   phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
@@ -282,16 +281,21 @@ fieldbook_analysis <- function(input, output, session, values){
 # end phCorr
 
 
+
+
   output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
-    req(aFilePath())
+    #req(aFilePath())
+    req(input$fba_set_trt)
     #req(input$phFieldMapVarsUI)
-    req(input$phFieldMapVars)
+    #req(input$phFieldMapVars)
 
     #withProgress({
-    trt = input$phFieldMapVars
+    fm_DF = fbInput()
+    #trt = input$phFieldMapVars
+    trt = input$fba_set_trt[1]
     #print(trt)
     if(is.null(trt)) return(NULL)
-    fm_DF = fbInput()
+
     if(is.null(fm_DF)) return(NULL)
     # print(colnames(fm_DF))
     # print(str(fm_DF))
@@ -326,51 +330,53 @@ fieldbook_analysis <- function(input, output, session, values){
     out
   })
 
-
-output$vcor_output = qtlcharts::iplotCorr_render({
-  req(input$fbCorrVars)
-  req(length(input$fbCorrVars) > 1)
-  DF <- fbInput()
-  shiny::withProgress(message = 'Imputing missing values', {
-    DF <- phCorr(DF, input$fbCorrVars)
+  has_more_traits <- reactive({
+    req(input$fba_set_trt)
+    trt = input$fba_set_trt
+    req(length(trt) > 1)
+    trt
   })
-  #str(DF)
-  iplotCorr(DF)
-})
+
+  get_ph_corr <- reactive({
+    shiny::withProgress(message = 'Imputing missing values', {
+      trt = has_more_traits()
+      DF <- fbInput()
+      out = phCorr(DF, trt, useMode = "dendo")
+    })
+    out
+  })
+
+
+  output$vcor_output = qtlcharts::iplotCorr_render({
+    shiny::withProgress(message = 'Creating graph ...', {
+      iplotCorr(get_ph_corr())
+    })
+  })
 
 output$phHeat_output = d3heatmap::renderD3heatmap({
-  req(input$phHeatCorrVars)
-  req(length(input$phHeatCorrVars) > 1)
-  DF <- fbInput()
-  shiny::withProgress(message = 'Imputing missing values', {
-    DF <- phCorr(DF, input$phHeatCorrVars, useMode = "dendo")
-  })
-  #print(head(DF))
+  DF = get_ph_corr()
   par(mar=c(3,1,1,10))
   d3heatmap::d3heatmap(DF, theme = "dark", colors = "Blues")
 })
 
-output$phDend_output = renderPlot({
-  req(input$phDendCorrVars)
-  req(length(input$phDendCorrVars) > 1)
-  DF <- fbInput()
-  shiny::withProgress(message = 'Imputing missing values', {
-    DF <- phCorr(DF, input$phDendCorrVars, useMode = "dendo")
-  })
-  dend <- DF %>% dist %>% hclust %>% as.dendrogram()
+  output$phDend_output = renderPlot({
+    DF = get_ph_corr()
+    dend <- DF %>% dist %>% hclust %>% as.dendrogram()
 
-  par(mar=c(3,1,1,10))
-  plot(dend, horiz = TRUE)
-})
+    par(mar=c(3,1,1,10))
+    plot(dend, horiz = TRUE)
+  })
 
 output$phDens_output = renderPlot({
-  req(input$phDens)
+  #req(input$phDens)
+  req(input$fba_set_trt)
 
   #par(mar=c(3,1,1,10))
   DF <- fbInput()
   if(!("REP" %in% names(DF))) return(NULL)
   if(any(is.null(DF$REP))) return(NULL)
-  titl = input$phDens
+  #titl = input$phDens
+  titl = input$fba_set_trt[1]
 
   DF <- DF[, c("REP", titl)]
   DF[, 2] <- as.numeric(DF[, 2])
@@ -398,90 +404,14 @@ output$phDens_output = renderPlot({
 
 #####################
 
-#observeEvent(input$butDoPhAnalysis, ({
-
-get_traits_with_data <- reactive({
-  DF = fbInput()
-  ok = sapply(DF, function(x) sum(is.na(x))) / nrow(DF) < .1
-  ok = names(DF)[ok]
-  ok = ok[stringr::str_detect(ok, " ")]
-  ok
-})
-
-get_traits_choice <- reactive({
-  req(aFilePath)
-  #req(input$fbaInput)
-  #req(input$fba_set_trt)
-  # trts = get_traits_with_data()
-  # ci = input$hotFieldbook_columns_selected
-  # DF = fbInput()
-  # trt_sel = trts[length(trts)]
-  # if(!is.null(ci)) {
-  #   trt_sel = names(DF)[ci]
-  # } else
-  #   if(!(trt_sel %in% trts)){
-  #     trt_sel = trts[length(trts)]
-  #   }
-  # # add one more trait so a corr matrix can be shown
-  # # choose one at random
-  # if(length(trts)>=2){
-  #   trt_sel <- c(trt_sel, trts[!trts %in% trt_sel][1] )
-  # }
-  #
-  # list(trts = trts, trt_sel = trt_sel)
-  trts = input$fba_set_trt
-  trtsel = trts[length(trts)]
-  list(trts = trts, trt_sel = trtsel )
-})
-
-#### Corr helper
-output$fbCorrVarsUI <- renderUI({
-   tc = get_traits_choice()
-   selectizeInput("fbCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
-                  multiple = TRUE, width = "100%")
-})
-
-output$phHeatCorrVarsUI <- renderUI({
-  tc = get_traits_choice()
-  selectizeInput("phHeatCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
-                 multiple = TRUE, width = "100%")
-})
-
-output$phDendCorrVarsUI <- renderUI({
-  tc = get_traits_choice()
-  selectizeInput("phDendCorrVars", "Select two or more traits:", tc$trts, selected = tc$trt_sel,
-                 multiple = TRUE, width = "100%")
-})
-
-
-
-output$aovVarsUI <- renderUI({
-  tc = get_traits_choice()
-  selectizeInput("aovVars", "Select trait(s):", tc$trts, selected = tc$trt_sel,
-                 multiple = TRUE, width = "100%")
-})
-
-output$phDensUI <- renderUI({
-  tc = get_traits_choice()
-  selectizeInput("phDens", "Select trait:", tc$trts, selected = tc$trt_sel,
-                 multiple = FALSE, width = "100%")
-
-})
-
-output$phFieldMapVarsUI <- renderUI({
-  tc = get_traits_choice()
-  selectizeInput("phFieldMapVars", "Select trait:", tc$trts, selected = tc$trt_sel,
-                 multiple = FALSE, width = "100%")
-
-})
-
-
 
 observeEvent(input$fbRepoDo, {
   output$fbRep <- shiny::renderUI({
+    req(input$fba_set_trt)
     #print("step 1")
+    #print("Hi")
     DF <- fbInput()
-    trait = input$aovVars
+    trait = input$fba_set_trt
 
     treat <- input$fba_set_gen #"germplasmName" #input$def_genotype
     #trait = input$fbCorrVars

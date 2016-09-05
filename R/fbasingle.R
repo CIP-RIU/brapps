@@ -3,35 +3,31 @@ visuals <- function(){
     column(width = 12,
            tabBox(width = NULL, #selected = "Map",
                   id = "tabAnalysis",
-
                   tabPanel("Map",
-                           uiOutput("phFieldMapVarsUI"),
                            d3heatmap::d3heatmapOutput("fieldbook_heatmap")
                   )
                   ,
                   tabPanel("Density",
-                           uiOutput("phDensUI")
-                           ,
-                           div(id = "plot-container",
-                               plotOutput('phDens_output', height = 400)
-                           )
-                  ),
+                           plotOutput('phDens_output', height = 400)
+                  )
+                  ,
                   tabPanel("Correlation",
-                           uiOutput("fbCorrVarsUI"),
-                           #tags$img(src = "www/35.gif"),
-                           #div(id = "plot-container",
+                           p("Mark at least two traits above."),
                            qtlcharts::iplotCorr_output('vcor_output', height = 900)
                            #)
-                  ),
+                  )
+                  ,
 
                   tabPanel("Heatmap",
-                           uiOutput("phHeatCorrVarsUI"),
+                           p("Mark at least two traits above."),
                            d3heatmap::d3heatmapOutput('phHeat_output', height = 1400)
-                  ),
+                  )
+                  ,
                   tabPanel("Dendrogram",
-                           uiOutput("phDendCorrVarsUI"),
+                           p("Mark at least two traits above."),
                            plotOutput('phDend_output', height = 1400)
-                  ),
+                  )
+                  ,
 
                   tabPanel(title = "Report",
 
@@ -95,7 +91,7 @@ fbasingle_ui <- function(title){
                                          list("Default" = "Default"
                                               #,
                                               #"Database (using BrAPI)" = "brapi"
-                                              ,"File" = "Local"
+                                              #,"File" = "Local"
                                          ),
                                          "Default",
                                          inline = TRUE),
