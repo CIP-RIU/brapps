@@ -198,7 +198,9 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     output$fbParams <- renderUI({
+
       req(aFilePath())
+      req(input$fbaInput)
       #print(input$fbaInput)
       out = NULL
       if( input$fba_src_type == "Default") return(gather_params())
@@ -282,9 +284,12 @@ fieldbook_analysis <- function(input, output, session, values){
 
   output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
     req(aFilePath())
+    #req(input$phFieldMapVarsUI)
     req(input$phFieldMapVars)
 
+    #withProgress({
     trt = input$phFieldMapVars
+    #print(trt)
     if(is.null(trt)) return(NULL)
     fm_DF = fbInput()
     if(is.null(fm_DF)) return(NULL)
@@ -312,11 +317,13 @@ fieldbook_analysis <- function(input, output, session, values){
     )
     amap = fm[["map"]]
     anot = fm[["notes"]]
-    d3heatmap(x = amap,
+    out = d3heatmap(x = amap,
               cellnote = anot,
               theme = "dark", colors = "Blues",
               Rowv = FALSE, Colv = FALSE,
               dendrogram = "none")
+    #}, "Creating field map ...")
+    out
   })
 
 
