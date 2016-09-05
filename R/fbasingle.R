@@ -3,6 +3,12 @@ visuals <- function(){
     column(width = 12,
            tabBox(width = NULL, #selected = "Map",
                   id = "tabAnalysis",
+
+                  tabPanel("Map",
+                           uiOutput("phFieldMapVarsUI"),
+                           d3heatmap::d3heatmapOutput("fieldbook_heatmap")
+                  )
+                  ,
                   tabPanel("Density",
                            uiOutput("phDensUI")
                            ,
@@ -27,11 +33,6 @@ visuals <- function(){
                            plotOutput('phDend_output', height = 1400)
                   ),
 
-                  tabPanel("Map",
-                           uiOutput("phFieldMapVarsUI"),
-                           d3heatmap::d3heatmapOutput("fieldbook_heatmap")
-                  )
-                  ,
                   tabPanel(title = "Report",
 
                            uiOutput("aovVarsUI"),
@@ -96,7 +97,7 @@ fbasingle_ui <- function(title){
                                               #"Database (using BrAPI)" = "brapi"
                                               ,"File" = "Local"
                                          ),
-                                         "Local",
+                                         "Default",
                                          inline = TRUE),
                             conditionalPanel(
                               condition = "input.fba_src_type == 'Local'",

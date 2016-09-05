@@ -278,6 +278,34 @@ fieldbook_analysis <- function(input, output, session, values){
 # end phCorr
 
 
+  output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
+    req(aFilePath())
+    req(input$phFieldMapVars)
+
+    trt = input$phFieldMapVars
+    if(is.null(trt)) return(NULL)
+    DF = fbInput()
+    if(is.null(DF)) return(NULL)
+
+    ##if (!is.null(ci)) trt = names(DF)[ci]
+
+    fm <- fbmaterials::fb_to_map(DF,
+                                 gt = input$fba_set_gen, #"germplasmName", #input[["def_genotype"]],
+                                 #gt = "TRT1",
+                                 variable = trt,
+                                 rep = input$fba_set_rep, #"REP", #input[["def_rep"]],
+                                 # blk = input[["def_block"]],
+                                 plt = input$fba_set_plt #"PLOT"  #input[["def_plot"]]
+    )
+    amap = fm[["map"]]
+    anot = fm[["notes"]]
+    d3heatmap(x = amap,
+              cellnote = anot,
+              colors = "Blues",
+              Rowv = FALSE, Colv = FALSE,
+              dendrogram = "none")
+  })
+
 
 output$vcor_output = qtlcharts::iplotCorr_render({
   req(input$fbCorrVars)
@@ -344,34 +372,6 @@ output$phDens_output = renderPlot({
 
 })
 
-
-output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
-  req(aFilePath())
-  req(input$phFieldMapVars)
-
-  trt = input$phFieldMapVars
-  if(is.null(trt)) return(NULL)
-  DF = fbInput()
-  if(is.null(DF)) return(NULL)
-
-  ##if (!is.null(ci)) trt = names(DF)[ci]
-
-  fm <- fbmaterials::fb_to_map(DF,
-                               gt = input$fba_set_gen, #"germplasmName", #input[["def_genotype"]],
-                               #gt = "TRT1",
-                               variable = trt,
-                               rep = input$fba_set_rep, #"REP", #input[["def_rep"]],
-                               # blk = input[["def_block"]],
-                               plt = input$fba_set_plt #"PLOT"  #input[["def_plot"]]
-  )
-  amap = fm[["map"]]
-  anot = fm[["notes"]]
-  d3heatmap(x = amap,
-            cellnote = anot,
-            colors = "Blues",
-            Rowv = FALSE, Colv = FALSE,
-            dendrogram = "none")
-})
 
 
 

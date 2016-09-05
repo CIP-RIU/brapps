@@ -3,7 +3,7 @@
 library(brapps)
 library(shinydashboard)
 #library(d3heatmap)
-#library(rhandsontable)
+library(rhandsontable)
 library(shinyURL)
 library(shinyFiles)
 
