@@ -9,31 +9,33 @@ library(shinyFiles)
 
 ui <- dashboardPage(skin = "yellow",
                     dashboardHeader(title = "HIDAP"),
-                    dashboardSidebar(
-                      sidebarMenu(
-                        menuItem("Phenotype",
-                          menuSubItem("Analysis",
-                                 tabName = "tab_analysis", icon = icon("map-o"))
-                                 #,
-                                 #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999),
+                    dashboardSidebar(disable = TRUE),
+                    #dashboardSidebar(
+                      # sidebarMenu(
+                      #   menuItem("Phenotype",
+                      #     menuSubItem("Analysis",
+                      #            tabName = "tab_analysis", icon = icon("map-o"))
+                      #            #,
+                      #            #numericInput("fbaInput", "Fieldbook ID", 142, 1, 9999),
+                      #
+                      #     ,
+                      #     HTML("<div style='display:none'>"),
+                      #     shinyURL.ui(label = "",width=0, copyURL = F, tinyURL = F),
+                      #     #shinyURL.ui("URL", tinyURL = F)
+                      #     HTML("</div>")
+                      #
+                      #
+                      #   )
+                      # )
+                    #)
+                    #,
+                    body = dashboardBody(
+                      # tabItems(
+                      #   tabItem(tabName = "tab_analysis",
+                            brapps::fbasingle_ui("Single Environment trial")
+                      #  )
 
-                          ,
-                          HTML("<div style='display:none'>"),
-                          shinyURL.ui(label = "",width=0, copyURL = F, tinyURL = F),
-                          #shinyURL.ui("URL", tinyURL = F)
-                          HTML("</div>")
-
-
-                        )
-                      )
-                    ),
-                    dashboardBody(
-                      tabItems(
-                        tabItem(tabName = "tab_analysis",
-                            brapps::fbasingle_ui("Single")
-                        )
-
-                      )
+                      #)
                     )
 )
 

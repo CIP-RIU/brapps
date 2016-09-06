@@ -85,8 +85,8 @@ fieldbook_analysis <- function(input, output, session, values){
     # )
 
     dataInput <- reactive({
-      #req(aFilePath)
-      req(input$fbaInput)
+      req(aFilePath)
+      #req(input$fbaInput)
       fbId = input$fbaInput
       if(input$fba_src_type == "Local"){
         fbIdf = parseFilePaths(vols, input$fb_Input)
@@ -284,7 +284,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
   output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
-    #req(aFilePath())
+    req(aFilePath())
     req(input$fba_set_trt)
     #req(input$phFieldMapVarsUI)
     #req(input$phFieldMapVars)
@@ -297,6 +297,8 @@ fieldbook_analysis <- function(input, output, session, values){
     if(is.null(trt)) return(NULL)
 
     if(is.null(fm_DF)) return(NULL)
+    cn = colnames(fm_DF)
+    if(!(trt %in% cn)) return(NULL)
     # print(colnames(fm_DF))
     # print(str(fm_DF))
     # print(input$fba_set_rep)
@@ -338,9 +340,9 @@ fieldbook_analysis <- function(input, output, session, values){
   })
 
   get_ph_corr <- reactive({
+    DF <- fbInput()
+    trt = has_more_traits()
     shiny::withProgress(message = 'Imputing missing values', {
-      trt = has_more_traits()
-      DF <- fbInput()
       out = phCorr(DF, trt, useMode = "dendo")
     })
     out
@@ -375,8 +377,12 @@ output$phDens_output = renderPlot({
   DF <- fbInput()
   if(!("REP" %in% names(DF))) return(NULL)
   if(any(is.null(DF$REP))) return(NULL)
-  #titl = input$phDens
+
   titl = input$fba_set_trt[1]
+  cn = colnames(DF)
+  if(!(titl %in% cn)) return(NULL)
+  #titl = input$phDens
+
 
   DF <- DF[, c("REP", titl)]
   DF[, 2] <- as.numeric(DF[, 2])

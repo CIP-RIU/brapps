@@ -91,7 +91,7 @@ fbasingle_ui <- function(title){
                                          list("Default" = "Default"
                                               #,
                                               #"Database (using BrAPI)" = "brapi"
-                                              #,"File" = "Local"
+                                              ,"File" = "Local"
                                          ),
                                          "Default",
                                          inline = TRUE),
