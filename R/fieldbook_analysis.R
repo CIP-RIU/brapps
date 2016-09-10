@@ -184,6 +184,7 @@ fieldbook_analysis <- function(input, output, session, values){
     gather_params <- function(){
       withProgress(message = "Getting trial info ...", {
         cn = colnames(fbInput()) %>% toupper()
+        tn = cn[(length(cn) - 1):length(cn)]
         gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GENO|GERMPLASMNAME|CIPNUMBER"))[1]
         bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
         rpi= which(stringr::str_detect(cn, "REP|REPL|REPLICATION" ))[1]
@@ -200,7 +201,7 @@ fieldbook_analysis <- function(input, output, session, values){
           ,
           fluidRow(width = 12,
                    column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn
-                                                 , selected = cn[length(cn)]
+                                                 , selected = tn
                                                  , multiple = TRUE))
           )
         )
@@ -289,7 +290,7 @@ fieldbook_analysis <- function(input, output, session, values){
     #req(input$phFieldMapVarsUI)
     #req(input$phFieldMapVars)
 
-    #withProgress({
+    withProgress(message = "Creating spatial map ...", {
     fm_DF = fbInput()
     #trt = input$phFieldMapVars
     trt = input$fba_set_trt[1]
@@ -328,7 +329,7 @@ fieldbook_analysis <- function(input, output, session, values){
               theme = "dark", colors = "Blues",
               Rowv = FALSE, Colv = FALSE,
               dendrogram = "none")
-    #}, "Creating field map ...")
+    }) # progrss
     out
   })
 
@@ -375,32 +376,51 @@ output$phDens_output = renderPlot({
 
   #par(mar=c(3,1,1,10))
   DF <- fbInput()
-  if(!("REP" %in% names(DF))) return(NULL)
-  if(any(is.null(DF$REP))) return(NULL)
+  REP =  input$fba_set_rep
+  if(!(REP %in% names(DF))) return(NULL)
+  if(any(is.null(DF[, REP]))) return(NULL)
 
   titl = input$fba_set_trt[1]
+
   cn = colnames(DF)
   if(!(titl %in% cn)) return(NULL)
   #titl = input$phDens
 
 
-  DF <- DF[, c("REP", titl)]
+  DF <- DF[, c(REP, titl)]
   DF[, 2] <- as.numeric(DF[, 2])
-  n = max(DF$REP)
+  n = max(DF[, REP])
   cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")
 
-  dens <- density(DF[DF$REP, 2], na.rm = TRUE)
-  plot(dens, main = titl, ylim = c(0, 0.8))
+  dens <- density(DF[DF[, REP], 2], na.rm = TRUE)
+
+  dds = list(n+1)
+  dds[[1]] = dens$y / max(dens$y)
+
   if(n > 1 & n < 6){#Assumption no more than 5 repetitions
     for(i in 1:n){
       #print(DF[DF$REP == i, 2])
-      dens <- density(DF[DF$REP == i, 2] , na.rm = TRUE)
-      lines(dens, col = cls[i+1])
+      dds[[i + 1]] <- density(DF[DF[, REP] == i, 2] , na.rm = TRUE)$y
+      dds[[i + 1]] <- dds[[i + 1]] / max(dds[[i + 1]])
+      dds[[1]] = dds[[1]] + dds[[i + 1]]
+    }
+  }
+  dds[[1]] <- dds[[1]] / max(dds[[1]])
+
+
+  plot(dds[[1]], main = titl, ylim = c(0, 1), type = "l")
+  #plot( main = titl, ylim = c(0, 1), type = "l")
+  if(n > 1 & n < 6){#Assumption no more than 5 repetitions
+    for(i in 1:n){
+      #print(DF[DF$REP == i, 2])
+      #dens <- density(DF[DF[, REP] == i, 2] , na.rm = TRUE)
+      #lines(dens, col = cls[i+1])
+      lines(dds[[i+1]], col = cls[i+1])
     }
     legend("topright", legend = c("overall", 1:n), title = "Repetition", lty = 1, col = cls[1:(n+1)])
   }
   #abline(v = mean(DF[, 2], na.rm = TRUE), lwd = 2, col = "grey30")
-  rug(DF[, 2], quiet = TRUE)
+  #rug(DF[, 2], quiet = TRUE)
 
 })
 
