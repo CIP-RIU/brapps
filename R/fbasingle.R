@@ -90,8 +90,8 @@ fbasingle_ui <- function(title){
                             radioButtons("fba_src_type", "Select a source type",
                                          list("Default" = "Default"
                                               #,
-                                              #"Database (using BrAPI)" = "brapi"
-                                              #,"File" = "Local"
+                                              # "Database (using BrAPI)" = "brapi"
+                                              ,"File" = "Local"
                                          ),
                                          "Default",
                                          inline = TRUE),

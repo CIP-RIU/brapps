@@ -289,7 +289,7 @@ fieldbook_analysis <- function(input, output, session, values){
     req(input$fba_set_trt)
     #req(input$phFieldMapVarsUI)
     #req(input$phFieldMapVars)
-
+    out = NULL
     withProgress(message = "Creating spatial map ...", {
     fm_DF = fbInput()
     #trt = input$phFieldMapVars
