@@ -4,7 +4,7 @@
 \alias{fbasingle_ui}
 \title{fbasingle_ui}
 \usage{
-fbasingle_ui(title)
+fbasingle_ui(title = "")
 }
 \arguments{
 \item{title}{a text}

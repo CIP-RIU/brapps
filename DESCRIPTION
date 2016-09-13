@@ -1,6 +1,6 @@
 Package: brapps
 Title: Functions for Demoing Breeding API
-Version: 0.0.17
+Version: 0.0.18
 Authors@R: person("Reinhard", "Simon", email = "R.SIMON@CGIAR.ORG",
   role = c("aut", "cre"))
 Description: Functions for Demoing Breeding API.

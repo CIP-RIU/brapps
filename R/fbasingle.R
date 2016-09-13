@@ -71,9 +71,9 @@ get_crops <- function(amode = "Demo"){
 #'
 #' @return shiny tag list
 #' @export
-fbasingle_ui <- function(title){
+fbasingle_ui <- function(title=""){
   #tagList(
-  tabItem(
+  shinydashboard::tabItem(name = title,
     h2(title),
     fluidRow(
       column(width = 12,
