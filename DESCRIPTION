@@ -1,6 +1,6 @@
 Package: brapps
 Title: Functions for Demoing Breeding API
-Version: 0.0.21
+Version: 0.0.22
 Authors@R: person("Reinhard", "Simon", email = "R.SIMON@CGIAR.ORG",
   role = c("aut", "cre"))
 Description: Functions for Demoing Breeding API.
@@ -11,7 +11,7 @@ Imports:
     DT, fbmaterials, htmlTable, miniUI, randomForest, rmarkdown,
     stringr, withr, shinyFiles, readxl, fbglobal, rstudioapi, st4gi, pepa
 Remotes: c5sire/brapi, c5sire/fbmaterials, c5sire/fbglobal, c5sire/shinyFiles,
-  reyzaguirre/st4gi
+  reyzaguirre/st4gi, reyzaguirre/pepa
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
