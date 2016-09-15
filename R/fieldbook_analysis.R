@@ -178,30 +178,34 @@ fieldbook_analysis <- function(input, output, session, values){
       #set_fb
     })
 
+    extract_params <- function(cn) {
 
+      gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GENO|GERMPLASMNAME|CIPNUMBER"))[1]
+      bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
+      rpi= which(stringr::str_detect(cn, "REP|REPL|REPLICATION" ))[1]
+      pti= which(stringr::str_detect(cn, "PLOT|PLT" ))[1]
+      ci = 1:length(cn)
+      tti= ci[!ci %in% c(gti, bki, rpi, pti)]
+      tn = cn[tti]
+      list(tn = tn,tti = tti, gti = gti,bki = bki, rpi = rpi, pti= pti, ci = ci)
+    }
 
 
     gather_params <- function(){
       withProgress(message = "Getting trial info ...", {
         cn = colnames(fbInput()) %>% toupper()
-        tn = cn[(length(cn) - 1):length(cn)]
-        gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GENO|GERMPLASMNAME|CIPNUMBER"))[1]
-        bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
-        rpi= which(stringr::str_detect(cn, "REP|REPL|REPLICATION" ))[1]
-        pti= which(stringr::str_detect(cn, "PLOT|PLT" ))[1]
-        ci = 1:length(cn)
-        tti= ci[!ci %in% c(gti, bki, rpi, pti)]
+        ep = extract_params(cn)
         out = tagList(
           fluidRow(width = 12,
-                   column(width = 3, selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[gti]) ),
-                   column(width = 3, selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[bki])),
-                   column(width = 3, selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[pti]) ),
-                   column(width = 3, selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[rpi]) )
+                   column(width = 3, selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[ep$gti]) ),
+                   column(width = 3, selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[ep$bki])),
+                   column(width = 3, selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[ep$pti]) ),
+                   column(width = 3, selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[ep$rpi]) )
           )
           ,
           fluidRow(width = 12,
                    column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn
-                                                 , selected = tn
+                                                 , selected = ep$tn
                                                  , multiple = TRUE))
           )
         )
