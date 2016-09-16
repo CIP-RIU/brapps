@@ -1,4 +1,5 @@
 visuals <- function(){
+
   fluidRow(
     column(width = 12,
            tabBox(width = NULL, #selected = "Map",
@@ -75,7 +76,7 @@ get_crops <- function(amode = "Demo"){
 #' @export
 fbasingle_ui <- function(title=""){
   #tagList(
-  shinydashboard::tabItem(name = title,
+  shinydashboard::tabItem(tabName = title,
     h2(title),
     fluidRow(
       column(width = 12,
