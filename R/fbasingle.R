@@ -77,7 +77,7 @@ get_crops <- function(amode = "Demo"){
 fbasingle_ui <- function(title=""){
   #tagList(
   shinydashboard::tabItem(tabName = title,
-    h2(title),
+    h2("Single Chart"),
     fluidRow(
       column(width = 12,
              box(width = NULL, collapsible = TRUE,
