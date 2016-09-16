@@ -110,13 +110,13 @@ fieldbook_analysis <- function(input, output, session, values){
     })
 
 
-    get_traits_with_data <- reactive({
-      DF = fbInput()
-      ok = sapply(DF, function(x) sum(is.na(x))) / nrow(DF) < .1
-      ok = names(DF)[ok]
-      ok = ok[stringr::str_detect(ok, " ")]
-      ok
-    })
+    # get_traits_with_data <- reactive({
+    #   DF = fbInput()
+    #   ok = sapply(DF, function(x) sum(is.na(x))) / nrow(DF) < .1
+    #   ok = names(DF)[ok]
+    #   ok = ok[stringr::str_detect(ok, " ")]
+    #   ok
+    # })
 
 
 
@@ -130,7 +130,7 @@ fieldbook_analysis <- function(input, output, session, values){
       # }
       if(input$fba_src_type == "Default"){
         sts <- get_all_studies(amode = "Default") # to improve using demo as backfall
-        print(sts)
+       # print(sts)
       }
 
       sts
@@ -245,7 +245,7 @@ fieldbook_analysis <- function(input, output, session, values){
   )
 
   phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
-
+    req(input$fba_set_trt)
     #treat <- "germplasmName" #input$def_genotype
     treat <- input$fba_set_gen
     #trait <- input$fba_set_trt
@@ -255,14 +255,16 @@ fieldbook_analysis <- function(input, output, session, values){
     if(length(trait) < 2) return(NULL)
     if(!all(trait %in% names(DF))) return(NULL)
     DF = DF[, c(treat, trait)]
+    #print(head(DF))
     for(i in 2:ncol(DF)){
       DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
     }
 
       options(warn = -1)
       # exclude the response variable and empty variable for RF imputation
-      datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+      datas <- names(DF)[!names(DF) %in% c(treat)] # TODO replace "PED1" by a search
       x <- DF[, datas]
+      #print(head(x))
       for(i in 1:ncol(x)){
         x[, i] <- as.numeric(x[, i])
       }
@@ -359,23 +361,27 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
   output$vcor_output = qtlcharts::iplotCorr_render({
+    req(input$fba_set_trt)
     shiny::withProgress(message = 'Creating graph ...', {
       iplotCorr(get_ph_corr())
     })
   })
 
   output$phHeat_output_ui <- renderUI({
+    req(input$fba_set_trt)
     d3heatmapOutput("phHeat_output", height = 1400)
   })
 
 
 output$phHeat_output = d3heatmap::renderD3heatmap({
+  req(input$fba_set_trt)
   DF = get_ph_corr()
   par(mar=c(3,1,1,10))
   d3heatmap::d3heatmap(DF, theme = "dark", colors = "Blues")
 })
 
   output$phDend_output = renderPlot({
+    req(input$fba_set_trt)
     DF = get_ph_corr()
     dend <- DF %>% dist %>% hclust %>% as.dendrogram()
 
@@ -384,6 +390,7 @@ output$phHeat_output = d3heatmap::renderD3heatmap({
   })
 
 output$phDens_output = renderPlot({
+  #req(input$fba_set_trt)
   #req(input$phDens)
   req(input$fba_set_trt)
 
@@ -401,6 +408,8 @@ output$phDens_output = renderPlot({
 
 
   DF <- DF[, c(REP, titl)]
+  print(str(DF))
+  print(head(DF))
   DF[, 2] <- as.numeric(DF[, 2])
   n = max(DF[, REP])
   cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")

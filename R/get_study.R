@@ -16,6 +16,7 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
     try({
       stdy = readxl::read_excel(id, "Fieldbook")
       colnames(stdy) = toupper(colnames(stdy))
+      stdy = as.data.frame(stdy)
     })
     return(stdy)
   }
