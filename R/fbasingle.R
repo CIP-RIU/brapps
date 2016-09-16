@@ -4,7 +4,8 @@ visuals <- function(){
            tabBox(width = NULL, #selected = "Map",
                   id = "tabAnalysis",
                   tabPanel("Spatial Map",
-                           d3heatmap::d3heatmapOutput("fieldbook_heatmap")
+                           #d3heatmap::d3heatmapOutput("fieldbook_heatmap")
+                           uiOutput("fieldbook_heatmap_ui")
                   )
                   ,
                   tabPanel("Density",
@@ -20,7 +21,8 @@ visuals <- function(){
 
                   tabPanel("Heatmap Genotype x Trait",
                            p("Mark at least two traits above."),
-                           d3heatmap::d3heatmapOutput('phHeat_output', height = 1400)
+                           #d3heatmap::d3heatmapOutput('phHeat_output', height = 1400)
+                           uiOutput("phHeat_output_ui")
                   )
                   ,
                   tabPanel("Dendrogram Genotypes",

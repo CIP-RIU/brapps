@@ -286,6 +286,10 @@ fieldbook_analysis <- function(input, output, session, values){
 # end phCorr
 
 
+  output$fieldbook_heatmap_ui <- renderUI({
+    d3heatmapOutput("fieldbook_heatmap")
+  })
+
 
 
   output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
@@ -359,6 +363,11 @@ fieldbook_analysis <- function(input, output, session, values){
       iplotCorr(get_ph_corr())
     })
   })
+
+  output$phHeat_output_ui <- renderUI({
+    d3heatmapOutput("phHeat_output", height = 1400)
+  })
+
 
 output$phHeat_output = d3heatmap::renderD3heatmap({
   DF = get_ph_corr()
