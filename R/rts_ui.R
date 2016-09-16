@@ -215,7 +215,7 @@ rts4_ui <- function(){
 #'
 #' @export
 rts_ui <- function(id = "rts1"){
-  tabItem(
+  tabItem(tabName = id,
   h2("Response to selection"),
   shinydashboard::tabBox(id = id,width = NULL,
 
