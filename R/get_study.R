@@ -41,10 +41,10 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
     # print(dn)
     if(!dir.exists(dn)) dir.create(dn, recursive = TRUE)
 
-    if(can_internet() ){
-      stdy = brapi::study_table(id)
-      saveRDS(stdy, fp)
-    }
+    # if(can_internet() ){
+    #   stdy = brapi::study_table(id)
+    #   saveRDS(stdy, fp)
+    # }
   }
   fp = fp[length(fp)] # use the latest entry TODO check the download tool
 
@@ -56,10 +56,10 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
     }
   })
   if(is.null(stdy) & amode == "brapi"){
-    if(can_internet() ){
-      stdy = brapi::study_table(id)
-      saveRDS(stdy, fp)
-    }
+    # if(can_internet() ){
+    #   stdy = brapi::study_table(id)
+    #   saveRDS(stdy, fp)
+    # }
   }
   colnames(stdy) = toupper(colnames(stdy))
   stdy

@@ -7,7 +7,7 @@
 #' @param values shiny
 #' @import shiny
 #' @importFrom magrittr '%>%'
-#' @importFrom brapi can_internet
+# @importFrom brapi can_internet
 #' @author Reinhard Simon
 # @return data.frame
 #' @export
@@ -277,11 +277,11 @@ locations <- function(input, output, session, values){
     sid = stds[stds$locationDbId %in% locs$locationDbId, "studyDbId"]
 
     # Download most recent trial for this location!
-    if(can_internet()){
-      ms = max(sid)
-      #xs = stds[stds$studyDbId == ms, ]
-      ss = get_study(year = stds$years[ms], id = ms, amode = amode, crop = crop)
-    }
+    # if(can_internet()){
+    #   ms = max(sid)
+    #   #xs = stds[stds$studyDbId == ms, ]
+    #   ss = get_study(year = stds$years[ms], id = ms, amode = amode, crop = crop)
+    # }
     sid
   }
 
@@ -311,27 +311,27 @@ locations <- function(input, output, session, values){
       txt = paste0("No internet connected!<br/>")
       out = stds$name %>% paste(collapse = ", ")
 
-      if(can_internet() & !is.null(brapi)){
-        txt = ""
-
-        path = "/breeders/trial/"
-        db = brapi$db
-        host = db
-        if(!stringr::str_detect(db, "@")){
-          if(!stringr::str_detect(db, "http")) {
-            host = paste0("http://", db)
-          }
-        }
-        if(rstudioapi::isAvailable()){
-          if(!stringr::str_detect(db, "http")) {
-            host = paste0("http://", db)
-          }
-        }
-        #print(sid)
-        out = paste0("<br><a href='",host, path, sid, "' target='_blank'>", stds$name, "</a>") %>%
-          paste(collapse = ", ")
-
-      }
+      # if(can_internet() & !is.null(brapi)){
+      #   txt = ""
+      #
+      #   path = "/breeders/trial/"
+      #   db = brapi$db
+      #   host = db
+      #   if(!stringr::str_detect(db, "@")){
+      #     if(!stringr::str_detect(db, "http")) {
+      #       host = paste0("http://", db)
+      #     }
+      #   }
+      #   if(rstudioapi::isAvailable()){
+      #     if(!stringr::str_detect(db, "http")) {
+      #       host = paste0("http://", db)
+      #     }
+      #   }
+      #   #print(sid)
+      #   out = paste0("<br><a href='",host, path, sid, "' target='_blank'>", stds$name, "</a>") %>%
+      #     paste(collapse = ", ")
+      #
+      # }
       html = paste0(txt, out)
     }
 
@@ -395,34 +395,34 @@ locations <- function(input, output, session, values){
       gnm = topgp$germplasmName
       hid = topgp$`Harvest index computing percent`
       txt = ""
-      if(can_internet() ){
-        db = brapi$db
-        host = db
-        if(!stringr::str_detect(db, "@")){
-          if(!stringr::str_detect(db, "http")) {
-            host = paste0("http://", db)
-          }
-        }
-        if(rstudioapi::isAvailable()){
-          if(!stringr::str_detect(db, "http")) {
-            host = paste0("http://", db)
-          }
-        }
-
-        path = "/stock/"
-        out = paste0("<a href='",host, path, gid,"/view' target='_blank'>", gnm, " (",hid,  ")</a>")
-
-        out = paste(out, collapse = ", ")
-        txt = ""
-        #print("here")
-        #print(out)
-
-      }
-      if(!can_internet()){
-        out = paste0 (gnm, " (",hid,  ")")
-        out = paste(out, collapse = ", ")
-        txt = paste("No internet connected!</br></br>")
-      }
+      # if(can_internet() ){
+      #   db = brapi$db
+      #   host = db
+      #   if(!stringr::str_detect(db, "@")){
+      #     if(!stringr::str_detect(db, "http")) {
+      #       host = paste0("http://", db)
+      #     }
+      #   }
+      #   if(rstudioapi::isAvailable()){
+      #     if(!stringr::str_detect(db, "http")) {
+      #       host = paste0("http://", db)
+      #     }
+      #   }
+      #
+      #   path = "/stock/"
+      #   out = paste0("<a href='",host, path, gid,"/view' target='_blank'>", gnm, " (",hid,  ")</a>")
+      #
+      #   out = paste(out, collapse = ", ")
+      #   txt = ""
+      #   #print("here")
+      #   #print(out)
+      #
+      # }
+      # if(!can_internet()){
+      #   out = paste0 (gnm, " (",hid,  ")")
+      #   out = paste(out, collapse = ", ")
+      #   txt = paste("No internet connected!</br></br>")
+      # }
 
       locs = dat()
       loc_name = locs[locs$locationDbId %in% sid, "name"]

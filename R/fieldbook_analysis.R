@@ -124,10 +124,10 @@ fieldbook_analysis <- function(input, output, session, values){
       req(input$fba_src_type)
       sts = NULL
       shiny::withProgress(message = 'Gathering info ...', {
-      if(brapi::can_internet()){
-        sts = brapi::studies()
-        sts[sts$studyType != "", ]
-      }
+      # if(brapi::can_internet()){
+      #   sts = brapi::studies()
+      #   sts[sts$studyType != "", ]
+      # }
       if(input$fba_src_type == "Default"){
         sts <- get_all_studies(amode = "Default") # to improve using demo as backfall
         print(sts)
