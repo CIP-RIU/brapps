@@ -30,10 +30,10 @@ ui <- dashboardPage(skin = "yellow",
                     #)
                     #,
                     body = dashboardBody(
-                      # tabItems(
+                       #tabItems(
                       #   tabItem(tabName = "tab_analysis",
-                            brapps::fbasingle_ui("Single Environment trial")
-                      #  )
+                            brapps::fbasingle_ui("SingleChart")
+                       #)
 
                       #)
                     )
