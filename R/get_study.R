@@ -1,5 +1,5 @@
 
-get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
+get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi", is_server = FALSE){
 
   # if amode == Local just read in an excel file (assume DC format for the moment)
   if(is.null(id)) return(NULL)
@@ -20,6 +20,20 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi"){
     })
     return(stdy)
   }
+
+
+ if(amode == "brapi"){
+   fp = file.path(fbglobal::get_base_dir(amode = amode, is_server = is_server), crop, "fieldbooks",
+                  paste0(id, ".rds"))
+   sty = NULL
+   if(file.exists(fp)){
+     sty =  try({
+       readRDS(fp)
+     })
+
+   }
+   return(sty)
+ }
 
   bd = get_base_data(acrop = crop, amode = amode)
   #print(paste("bd", bd))

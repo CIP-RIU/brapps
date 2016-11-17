@@ -1,8 +1,17 @@
-#library(shiny)
+library(shiny)
 library(brapi)
 library(brapps)
 library(shinydashboard)
+library(leaflet)
 
+is_server = TRUE
+dbCrop = "sweetpotato"
+dbName = "sweetpotatobase"
+dbUrl = "sweetpotatobase.org"
+dbBrapi = "brapi/v1"
+dbPort = "80"
+
+Sys.setenv(BRAPI_DBNAME = dbName) #TODO this should be done in response to user selection
 
 ui <- dashboardPage(skin = "yellow",
   dashboardHeader(title = "HIDAP"),
@@ -21,7 +30,7 @@ ui <- dashboardPage(skin = "yellow",
                 column(width = 8,
                        tabBox(width = NULL,
                            tabPanel("Map",
-                             leafletOutput("map")
+                             leafletOutput("mapLocs")
                              ),
                            tabPanel("Report",
                               htmlOutput("rep_loc")
@@ -51,7 +60,7 @@ ui <- dashboardPage(skin = "yellow",
                   box(width = NULL,
                     title = "Location table",
                     #p(class = 'text-center', downloadButton('locsDL', 'Download Filtered Data')),
-                    DT::dataTableOutput("table")
+                    DT::dataTableOutput("tableLocs")
                     #locationsUI("location")
                   )
                 )
@@ -65,7 +74,10 @@ ui <- dashboardPage(skin = "yellow",
 ############################################################
 
 sv <- function(input, output, session) ({
-   brapps::locations(input, output, session)
+  values <- shiny::reactiveValues(crop = "sweetpotato",
+                                  amode = "brapi",
+                                  is_server = is_server)
+   brapps::locations(input, output, session, values = values)
 })
 
 shinyApp(ui, sv)

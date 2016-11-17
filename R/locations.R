@@ -15,6 +15,7 @@ locations <- function(input, output, session, values){
 
   #if(is.null(brapi)) return(NULL)
   crop = isolate(values$crop)
+  is_server = isolate(values$is_server)
   #mode = isolate(values$mode)
 
   msg_no_loc = "No location selected."
@@ -32,28 +33,32 @@ locations <- function(input, output, session, values){
 
 
 
-  # get_base_data <- function(mode = "brapi", acrop = crop, atype = "fieldbooks"){
-  #   bd = fbglobal::get_base_dir(mode = mode)
-  #   fp = file.path(bd, acrop, atype)
-  #   #print("get base data")
-  #   #rint(fp)
-  #   if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
-  #   fp
-  # }
+  get_base_data <- function(mode = "brapi", acrop = crop,
+                            atype = "fieldbooks"){
+    bd = fbglobal::get_base_dir(amode = mode, is_server = is_server)
+    fp = file.path(bd, acrop, atype)
+    #print("get base data")
+    #rint(fp)
+    if(!dir.exists(fp)) dir.create(fp, recursive = TRUE)
+    fp
+  }
 
   return_null_with_msg <- function(msg){
     cat(msg)
     return(NULL)
   }
 
-  fp = file.path(get_base_data(atype = "location", acrop = crop), "locations.rda")
+  fp = file.path(get_base_data(atype = "location", acrop = crop), "table_sites.rds")
 
+  #print(fp)
   locationData <- reactiveFileReader(10000, session, fp, readRDS)
 
   dat <- reactive({
     dat = NULL
     if(file.exists(fp)){
+      #print(fp)
       dat = locationData()
+
     }
 
     if(is.null(dat)) {
@@ -67,9 +72,11 @@ locations <- function(input, output, session, values){
       return_null_with_msg("Could not retrieve data from database. Check your login details and internet connection.")
     }
     }
+    dat = dat[dat$latitude != 0 & dat$longitude != 0, ]
     out = dat[!is.na(dat$latitude), ]
     #print(head(dat))
-    dat
+    #print(out)
+    out
   })
 
 
@@ -454,7 +461,7 @@ locations <- function(input, output, session, values){
 
   observe({
     invalidateLater(millis = 30 * 1000, session)
-    unlink(fp)
+    #unlink(fp)
   })
 
  }
