@@ -185,7 +185,10 @@ fieldbook_analysis <- function(input, output, session, values){
       rpi= which(stringr::str_detect(cn, "REP|REPL|REPLICATION" ))[1]
       pti= which(stringr::str_detect(cn, "PLOT|PLT" ))[1]
       ci = 1:length(cn)
-      tti= ci[!ci %in% c(gti, bki, rpi, pti)]
+      fcs = c(gti, bki, rpi, pti)
+      tti= ci[!ci %in% fcs]
+      fci = max(fcs)
+      tti = max((length(cn) - 3), min(tti)):length(cn)
       tn = cn[tti]
       list(tn = tn,tti = tti, gti = gti,bki = bki, rpi = rpi, pti= pti, ci = ci)
     }
@@ -321,7 +324,16 @@ fieldbook_analysis <- function(input, output, session, values){
     })
     # print(REP)
 
+    #attr(fm_DF, "meta") = list(variables = cn)
     ##if (!is.null(ci)) trt = names(DF)[ci]
+    # print(head(fm_DF))
+    # print(str(fm_DF))
+    # print(input$fba_set_gen)
+    # print(REP)
+    # print(input$fba_set_plt)
+    # print(trt)
+
+
 
     fm <- fbmaterials::fb_to_map(fm_DF,
                                  gt = input$fba_set_gen, #"germplasmName", #input[["def_genotype"]],
@@ -408,8 +420,8 @@ output$phDens_output = renderPlot({
 
 
   DF <- DF[, c(REP, titl)]
-  print(str(DF))
-  print(head(DF))
+  #print(str(DF))
+  #print(head(DF))
   DF[, 2] <- as.numeric(DF[, 2])
   n = max(DF[, REP])
   cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")

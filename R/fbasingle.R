@@ -18,13 +18,13 @@ visuals <- function(){
                            qtlcharts::iplotCorr_output('vcor_output', height = 900)
                            #)
                   )
-                  ,
-
-                  tabPanel("Heatmap Genotype x Trait",
-                           p("Mark at least two traits above."),
-                           #d3heatmap::d3heatmapOutput('phHeat_output', height = 1400)
-                           uiOutput("phHeat_output_ui")
-                  )
+                  # ,
+                  #
+                  # tabPanel("Heatmap Genotype x Trait",
+                  #          p("Mark at least two traits above."),
+                  #          #d3heatmap::d3heatmapOutput('phHeat_output', height = 1400)
+                  #          uiOutput("phHeat_output_ui")
+                  # )
                   ,
                   tabPanel("Dendrogram Genotypes",
                            p("Mark at least two traits above."),
