@@ -86,6 +86,6 @@ brapi_sync <- function(dbName, pb = NULL){
 
 }
 
-brapi_sync("sweetpotatobase")
+#brapi_sync("sweetpotatobase")
 
 #brapi_sync("cassavabase")
