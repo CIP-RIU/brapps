@@ -2,7 +2,7 @@ visuals <- function(){
 
   fluidRow(
     column(width = 12,
-           tabBox(width = NULL, #selected = "Map",
+           shinydashboard::tabBox(width = NULL, #selected = "Map",
                   id = "tabAnalysis",
                   tabPanel("Spatial Map",
                            #d3heatmap::d3heatmapOutput("fieldbook_heatmap")
@@ -62,9 +62,9 @@ visuals <- function(){
   )
 }
 
-get_crops <- function(amode = "Demo"){
-  list.dirs(fbglobal::get_base_dir(amode), recursive = FALSE) %>% basename()
-}
+# get_crops <- function(amode = "Demo"){
+#   list.dirs(fbglobal::get_base_dir(amode), recursive = FALSE) %>% basename()
+# }
 
 
 #' fbasingle_ui
@@ -80,22 +80,24 @@ fbasingle_ui <- function(title=""){
     h2("Single Chart"),
     fluidRow(
       column(width = 12,
-             box(width = NULL, collapsible = TRUE,
+             shinydashboard::box(width = NULL, collapsible = TRUE,
                  title = "Data",
-                 tabBox("Details", width = 12,
+                 shinydashboard::tabBox("Details", width = 12,
                   tabPanel("Source",
                    fluidRow(
                      column(width = 3,
                             radioButtons("fba_src_crop", "Select a crop",
-                                         get_crops(),
+                                         #get_crops(),
+                                         c("potato", "sweetpotato"),
                                          inline = TRUE)
                             ),
                      column(width = 3,
                             radioButtons("fba_src_type", "Select a source type",
-                                         list("Default" = "Default"
+                                         list(#"Default" = "Default"
                                               #,
                                               # "Database (using BrAPI)" = "brapi"
-                                              ,"File" = "Local"
+                                              #,
+                                              "File" = "Local"
                                          ),
                                          "Default",
                                          inline = TRUE),
@@ -130,6 +132,6 @@ fbasingle_ui <- function(title=""){
       )
     )
     )
-    ,visuals()
+    , visuals()
   )
 }

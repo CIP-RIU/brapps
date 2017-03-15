@@ -62,6 +62,8 @@ repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, blo
 #' @importFrom shinyFiles shinyFileChoose getVolumes parseFilePaths shinyFilesButton
 #' @importFrom magrittr '%>%'
 #' @importFrom utils read.csv
+#' @importFrom graphics box legend lines mtext par plot points
+#' @importFrom stats as.dendrogram density dist dnorm hclust integrate pnorm qnorm uniroot
 # @return data.frame
 #' @export
 fieldbook_analysis <- function(input, output, session, values){
@@ -86,7 +88,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
     dataInput <- reactive({
       req(aFilePath)
-      #req(input$fbaInput)
+      req(input$fbaInput)
       fbId = input$fbaInput
       if(input$fba_src_type == "Local"){
         fbIdf = parseFilePaths(vols, input$fb_Input)
@@ -146,29 +148,30 @@ fieldbook_analysis <- function(input, output, session, values){
         parseFilePaths(vols, input$fb_Input)$datapath[1] %>% as.character()
         })
 
-       get_sl_from_brapi <- function(){
-        sts = fbList()
-        if(is.null(sts)) return()
-        sl = as.list(sts$studyDbId)
-        names(sl) = sts$name
-        sl
-      }
-      sl = NULL
-      if( input$fba_src_type == "brapi"){
-        sl = get_sl_from_brapi()
-      }
+      #  get_sl_from_brapi <- function(){
+      #   sts = fbList()
+      #   if(is.null(sts)) return()
+      #   sl = as.list(sts$studyDbId)
+      #   names(sl) = sts$name
+      #   sl
+      # }
+      # sl = NULL
+      # if( input$fba_src_type == "brapi"){
+      #   sl = get_sl_from_brapi()
+      # }
 
 
-      if( input$fba_src_type == "Default"){
-        withProgress( message = "Getting trials", {
-          bd = fbglobal::fname_fieldbooks(crop = input$fba_src_crop)
-          sl = list.files(bd)
-        })
-      }
-      if( input$fba_src_type == "Local"){
+      # if( input$fba_src_type == "Default"){
+      #   withProgress( message = "Getting trials", {
+      #     bd = fbglobal::fname_fieldbooks(crop = input$fba_src_crop)
+      #     sl = list.files(bd)
+      #   })
+      # }
+      # bd = dataInput()
+      # if( input$fba_src_type == "Local"){
         bd = dataInput()
         sl = bd
-      }
+      # }
 
       # out = NULL
       # set_fb = NULL

@@ -7,7 +7,6 @@
 #' @param label text
 #' @import shiny
 #' @author Reinhard Simon
-#' @export
 fieldbook_analysisInput <- function(id, label = "Fieldbook analysis parameters"){
   ns <- NS(id)
   tagList(

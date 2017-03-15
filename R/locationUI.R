@@ -5,7 +5,7 @@
 #' @import shiny
 #' @author Reinhard Simon
 #' @return list
-#' @export
+
 locationsUI <- function(id){
   ns <- NS(id)
 
