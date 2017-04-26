@@ -280,6 +280,12 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
   output$hotFieldbook <- DT::renderDataTable({
+
+    validate(
+      need(is.data.frame(fbInput()),
+           "Need a table as data source!")
+    )
+
     withProgress(message = "Loading table ...", {
       fbInput()
     })
@@ -293,8 +299,25 @@ fieldbook_analysis <- function(input, output, session, values){
   # selection = list(target = 'column', mode = "single")
   )
 
+  validate_table <- function(DF) {
+    validate(
+      need(
+        is.data.frame(DF), "The data source needs to be a table."
+      )
+    )
+
+    validate(
+      need(
+        nrow(DF) > 9, "The data source needs to be a table with more than 9 rows."
+      )
+    )
+  }
+
   phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
     req(input$fba_set_trt)
+    validate_table(DF)
+
+
     #treat <- "germplasmName" #input$def_genotype
     treat <- input$fba_set_gen
     #trait <- input$fba_set_trt
@@ -319,6 +342,13 @@ fieldbook_analysis <- function(input, output, session, values){
       }
       y <- DF[, treat] %>% as.factor
       if (any(is.na(x))){
+        print(y)
+        validate(
+          need(
+            all(!is.na(y)),
+            "The response vector (genotypes) must not have any missing values"
+          )
+        )
         utils::capture.output(
           DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
         )
@@ -348,11 +378,7 @@ fieldbook_analysis <- function(input, output, session, values){
     withProgress(message = "Creating spatial map ...", {
     fm_DF = fbInput()
 
-    validate(
-      need( (nrow(fm_DF) > 1),
-        "Fieldbook must have more than one row of data."
-      )
-    )
+    validate_table(fm_DF)
 
     REP = "REP"
     try({
@@ -366,13 +392,31 @@ fieldbook_analysis <- function(input, output, session, values){
             "Only experiments with more than 1 replication are currently supported.")
     )
 
+
+    print("table reps")
+    print(table(reps))
     validate(
       need((length(unique(table(reps)[2])) == 1),
            "Only experiments with equal number of repetitions are currently supported.")
     )
 
+    # print(max(reps))
+    # print( length(unique(fm_DF[, input$fba_set_gen])))
+    # print(nrow(fm_DF))
+
+    is_multiple <- function() {
+      n_rep <- max(reps)
+      n_gen <- length(unique(fm_DF[, input$fba_set_gen]))
+
+      n_row <- nrow(fm_DF)
+
+      #print(n_row %% (n_gen * n_rep))
+
+      n_row %% (n_gen * n_rep) == 0
+    }
+
     validate(
-      need(max(table(reps)[2]) * length(unique(fm_DF[, input$fba_set_gen])) == nrow(fm_DF),
+      need(is_multiple(),
            "Number of rows must be a multiple of the number of genotypes.")
     )
 
@@ -458,6 +502,9 @@ output$phDens_output = renderPlot({
 
   #par(mar=c(3,1,1,10))
   DF <- fbInput()
+
+  validate_table(DF)
+
   REP =  input$fba_set_rep
   if(!(REP %in% names(DF))) return(NULL)
   if(any(is.null(DF[, REP]))) return(NULL)

@@ -15,7 +15,7 @@ ui <- dashboardPage(skin = "yellow",
         sidebarMenu(
                    menuItem("Single Trial Analysis",
                             menuSubItem("Single trial graph", tabName = "singleChart", icon = icon("calculator")),
-                            menuSubItem("Selection response", tabName = "selResponse",icon = icon("indent"))
+                            menuSubItem("Selection response", tabName = "selResponse", icon = icon("indent"))
         )
       )),
       dashboardBody(

@@ -81,8 +81,8 @@ fbasingle_ui <- function(title="") {
   bdb <- brapi::ba_db()
 
   ndb <- names(bdb)
-  ndb <- ndb[!ndb %in% "mockbase"]
-
+  ndb <- ndb[!ndb %in% c("mockbase", "ricebase")]
+  ndb <- ndb[stringr::str_detect(ndb, "base")]
 
   shinydashboard::tabItem(tabName = title,
     h2("Single Chart"),
