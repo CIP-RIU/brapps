@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+#
+>>>>>>> 0b1b69c51027f8fadccb799ebd4d6bd6b84c53c1
 # brapi_sync <- function(dbName, pb = NULL){
 #   # progress bar!
 #
@@ -86,6 +90,10 @@
 #
 # }
 #
+<<<<<<< HEAD
 # brapi_sync("sweetpotatobase")
+=======
+# #brapi_sync("sweetpotatobase")
+>>>>>>> 0b1b69c51027f8fadccb799ebd4d6bd6b84c53c1
 #
 # #brapi_sync("cassavabase")

@@ -1,9 +1,0 @@
-Name: HIDAP locations
-Description: Inspect breeding locations
-Binding: locationsAddin
-Interactive: true
-
-Name: HIDAP analysis
-Description: Review field trial data
-Binding: fieldbook_analysisAddin
-Interactive: true

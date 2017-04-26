@@ -2,7 +2,7 @@ visuals <- function(){
 
   fluidRow(
     column(width = 12,
-           tabBox(width = NULL, #selected = "Map",
+           shinydashboard::tabBox(width = NULL, #selected = "Map",
                   id = "tabAnalysis",
                   tabPanel("Correlation",
                            p("Mark at least two traits above."),
@@ -63,9 +63,9 @@ visuals <- function(){
   )
 }
 
-get_crops <- function(amode = "Demo"){
-  list.dirs(fbglobal::get_base_dir(amode), recursive = FALSE) %>% basename()
-}
+# get_crops <- function(amode = "Demo"){
+#   list.dirs(fbglobal::get_base_dir(amode), recursive = FALSE) %>% basename()
+# }
 
 
 #' fbasingle_ui
@@ -88,17 +88,32 @@ fbasingle_ui <- function(title=""){
     h2("Single Chart"),
     fluidRow(
       column(width = 12,
-             box(width = NULL, collapsible = TRUE,
+             shinydashboard::box(width = NULL, collapsible = TRUE,
                  title = "Data",
-                 tabBox("Details", width = 12,
+                 shinydashboard::tabBox("Details", width = 12,
                   tabPanel("Source",
                    fluidRow(
                      column(width = 3,
+<<<<<<< HEAD
                             radioButtons("fba_src_type", "Select a source type",
                                          list("Default" = "Default"
                                               ,
                                               "Database (using BrAPI)" = "Brapi"
                                               ,"File" = "Local"
+=======
+                            radioButtons("fba_src_crop", "Select a crop",
+                                         #get_crops(),
+                                         c("potato", "sweetpotato"),
+                                         inline = TRUE)
+                            ),
+                     column(width = 3,
+                            radioButtons("fba_src_type", "Select a source type",
+                                         list(#"Default" = "Default"
+                                              #,
+                                              # "Database (using BrAPI)" = "brapi"
+                                              #,
+                                              "File" = "Local"
+>>>>>>> 0b1b69c51027f8fadccb799ebd4d6bd6b84c53c1
                                          ),
                                          "Default",
                                          inline = TRUE),
@@ -154,6 +169,6 @@ fbasingle_ui <- function(title=""){
       )
     )
     )
-    ,visuals()
+    , visuals()
   )
 }

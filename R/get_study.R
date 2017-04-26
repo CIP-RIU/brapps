@@ -4,11 +4,11 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi", is
   # if amode == Local just read in an excel file (assume DC format for the moment)
   if(is.null(id)) return(NULL)
 
-  if(amode == "Default"){
-    stdy = file.path(fbglobal::fname_fieldbooks(crop), id)
-    if(file.exists(stdy)) return(readRDS(stdy))
-    return(NULL)
-  }
+  # if(amode == "Default"){
+  #   stdy = file.path(fbglobal::fname_fieldbooks(crop), id)
+  #   if(file.exists(stdy)) return(readRDS(stdy))
+  #   return(NULL)
+  # }
 
 
   if(amode == "Local" & stringr::str_detect(id[[1]], "xls")){
@@ -22,6 +22,7 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi", is
   }
 
 
+<<<<<<< HEAD
  if(amode == "brapi"){
    # fp = file.path(fbglobal::get_base_dir(amode = amode, is_server = is_server), crop, "fieldbooks",
    #                paste0(id, ".rds"))
@@ -34,6 +35,20 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi", is
    # }
    # return(sty)
  }
+=======
+ # if(amode == "brapi"){
+ #   fp = file.path(fbglobal::get_base_dir(amode = amode, is_server = is_server), crop, "fieldbooks",
+ #                  paste0(id, ".rds"))
+ #   sty = NULL
+ #   if(file.exists(fp)){
+ #     sty =  try({
+ #       readRDS(fp)
+ #     })
+ #
+ #   }
+ #   return(sty)
+ # }
+>>>>>>> 0b1b69c51027f8fadccb799ebd4d6bd6b84c53c1
 
   bd = get_base_data(acrop = crop, amode = amode)
   #print(paste("bd", bd))
