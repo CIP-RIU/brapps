@@ -12,8 +12,8 @@ Imports:
     DT, fbmaterials, htmlTable, miniUI, randomForest, rmarkdown,
     stringr, withr, shinyFiles, readxl, fbglobal, rstudioapi,
     klaR, spdep, AlgDesign, base64enc, htmlwidgets, png, rhandsontable, st4gi, pepa,
-    bitops, scales
-Remotes: c5sire/fbmaterials,  c5sire/shinyFiles, c5sire/fbglobal,
+    bitops, scales, brapi, stats
+Remotes: c5sire/fbmaterials,  c5sire/shinyFiles, c5sire/fbglobal, c5sire/brapi,
   reyzaguirre/st4gi, reyzaguirre/pepa
 License: GPL-3
 Encoding: UTF-8

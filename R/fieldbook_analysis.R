@@ -490,7 +490,7 @@ fieldbook_analysis <- function(input, output, session, values){
         utils::capture.output(
           #DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
 
-          DF <- randomForest::rfImpute(as.formula(frm), DF, iter = 3, ntree = 50 )
+          DF <- randomForest::rfImpute(stats::as.formula(frm), DF, iter = 3, ntree = 50 )
         )
        }
       names(DF)[1] <- treat
