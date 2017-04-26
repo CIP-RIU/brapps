@@ -1,3 +1,24 @@
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  tolower(os)
+}
+
+is_server <- function() {
+  if(get_os() != "windows") return(TRUE)
+  return(FALSE)
+}
+
 
 repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, block = 1, k = 1,
                           title = paste0("Automatic report for a ",toupper(areport), " design"),
@@ -76,6 +97,95 @@ fieldbook_analysis <- function(input, output, session, values){
   shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes = c('', 'xls', 'xlsx'))
 
 
+  output$ui_src_type <- shiny::renderUI({
+    bdb <- brapi::ba_db()
+
+    ndb <- names(bdb)
+    ndb <- ndb[!ndb %in% c("mockbase", "ricebase")]
+    ndb <- ndb[stringr::str_detect(ndb, "base")]
+
+    if (!is_server()) {
+      out <- shiny::tagList(
+        radioButtons("fba_src_type", "Select a source type",
+                   list("Default" = "Default"
+                        ,
+                        "Database (using BrAPI)" = "Brapi"
+                        ,"File" = "Local"
+                   ),
+                   "Default",
+                   inline = TRUE),
+        conditionalPanel(
+          condition = "input.fba_src_type == 'Local'",
+
+          shinyFilesButton('fb_Input',
+                           label = 'File select',
+                           title = 'Please select a file', multiple=FALSE)
+        ),
+
+        conditionalPanel(
+          condition = "input.fba_src_type == 'Brapi'",
+          shiny::selectInput("baui_bdb", "BrAPI database", ndb)
+
+        )
+      )
+
+    } else {
+      out <- shiny::selectInput("baui_bdb", "BrAPI database", ndb)
+    }
+    return(out)
+  })
+
+
+  output$ui_src_filter <- shiny::renderUI({
+    if (!is_server()) {
+    out <- tagList(
+      conditionalPanel(
+        condition = "input.fba_src_type != 'Brapi'",
+        radioButtons("fba_src_crop", "Select a crop",
+                     get_crops(),
+                     inline = TRUE)
+      ),
+      conditionalPanel(
+        condition = "input.fba_src_type == 'Brapi'",
+        shiny::checkboxInput("baui_chk_prg", "Use Breeding Programs as filter", value = FALSE),
+        shiny::uiOutput("baui_prgs")
+      )
+    )
+    } else {
+      out <- tagList(
+        shiny::checkboxInput("baui_chk_prg", "Use Breeding Programs as filter", value = FALSE),
+        shiny::uiOutput("baui_prgs")
+      )
+    }
+    return(out)
+  })
+
+  output$ui_src_fieldbook <- shiny::renderUI({
+    if (!is_server()) {
+      out <- shiny::tagList(
+        conditionalPanel(
+          condition = "input.fba_src_type == 'Default'",
+          selectInput("fbaInput", "Fieldbook", choices = NULL)
+        ),
+        conditionalPanel(
+          condition = "input.fba_src_type == 'Local'",
+          verbatimTextOutput('filepaths')
+        ),
+        conditionalPanel(
+          condition = "input.fba_src_type == 'Brapi'",
+          shiny::uiOutput("baui_stds")
+        )
+
+      )
+    } else {
+      out <- shiny::tagList(
+        shiny::uiOutput("baui_stds")
+      )
+    }
+    return(out)
+  })
+
+
     dataInput <- reactive({
       req(aFilePath)
       req(input$fbaInput)
@@ -96,6 +206,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     con <- shiny::reactive({
+      req(input$baui_bdb)
       brapi::ba_db()[[input$baui_bdb]]
     })
 
@@ -106,6 +217,7 @@ fieldbook_analysis <- function(input, output, session, values){
     })
 
     data_std <- shiny::reactive({
+      #req(input$progrs)
       shiny::withProgress(message = "Connecting", detail = "Loading studies",  {
         std <- brapi::ba_studies_search(con())
         if (input$baui_chk_prg) {
@@ -116,6 +228,7 @@ fieldbook_analysis <- function(input, output, session, values){
     })
 
     data_fdb <- shiny::reactive({
+      req(input$studs)
       shiny::withProgress(message = "Connecting", detail = "Loading fieldbook",  {
         std <- brapi::ba_studies_table(con(), input$studs, rclass = "data.frame")
         return(std)
@@ -146,13 +259,28 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     fbInput <- reactive({
+
     out <- NULL
+    if (!is_server()) {
       if(input$fba_src_type == "Brapi") {
         out <- data_fdb()
+        validate(
+          need(is.data.frame(out),
+               "Need a table.")
+        )
         colnames(out) <- toupper(colnames(out))
       } else {
         out <- get_study(id = dataInput(), amode = input$fba_src_type, crop = input$fba_src_crop)
       }
+    } else {
+      out <- data_fdb()
+      validate(
+        need(is.data.frame(out),
+             "Need a table.")
+      )
+      colnames(out) <- toupper(colnames(out))
+    }
+
 
     out
     })
@@ -267,14 +395,19 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     output$fbParams <- renderUI({
-      req(input$fba_src_type)
-      out = NULL
-      if( input$fba_src_type == "Default") return(gather_params())
-      if( input$fba_src_type == "Brapi") return(gather_params())
-      if( input$fba_src_type == "Local") {
-        req(input$fbaInput)
-        if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
+      if( !is_server()) {
+        req(input$fba_src_type)
+        out = NULL
+        if( input$fba_src_type == "Default") return(gather_params())
+        if( input$fba_src_type == "Brapi") return(gather_params())
+        if( input$fba_src_type == "Local") {
+          req(input$fbaInput)
+          if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
+        }
+      } else {
+        return(gather_params())
       }
+
     })
 
 
@@ -317,47 +450,54 @@ fieldbook_analysis <- function(input, output, session, values){
     req(input$fba_set_trt)
     validate_table(DF)
 
-
-    #treat <- "germplasmName" #input$def_genotype
     treat <- input$fba_set_gen
-    #trait <- input$fba_set_trt
-    #trait <- names(DF)[c(7:ncol(DF))]  #input$def_variables
-    #trait = input$fbCorrVars
-    #print(length(trait))
     if(length(trait) < 2) return(NULL)
     if(!all(trait %in% names(DF))) return(NULL)
     DF = DF[, c(treat, trait)]
-    #print(head(DF))
+
+    na_count <- sapply(DF, function(y) sum(length(which(is.na(y)))))
+    too_many_na <- na_count / nrow(DF) > 0.1
+    #print(too_many_na)
+
+    DF <- DF[, !too_many_na]
+    #print(names(DF))
+
     for(i in 2:ncol(DF)){
-      DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
+      try({
+        DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
+      })
+
     }
 
       options(warn = -1)
       # exclude the response variable and empty variable for RF imputation
-      datas <- names(DF)[!names(DF) %in% c(treat)] # TODO replace "PED1" by a search
+      #datas <- names(DF)[!names(DF) %in% c(treat)] # TODO replace "PED1" by a search
+      datas <- names(DF)[2:ncol(DF)]
       x <- DF[, datas]
       #print(head(x))
-      for(i in 1:ncol(x)){
-        x[, i] <- as.numeric(x[, i])
-      }
+      # for(i in 1:ncol(x)){
+      #   x[, i] <- as.numeric(x[, i])
+      # }
       y <- DF[, treat] %>% as.factor
-      if (any(is.na(x))){
-        print(y)
-        validate(
-          need(
-            all(!is.na(y)),
-            "The response vector (genotypes) must not have any missing values"
-          )
-        )
+      DF <- cbind(y, x)
+      names(DF)[1] <- treat
+      #print(head(DF))
+      # print(y)
+      if (all(!is.na(y))) {
+        #frm <- paste0(treat, " ~ ", paste(names(DF[, 2:ncol(DF)]), collapse = "+"))
+        frm <- paste0(treat, " ~ .")
+        #print(frm)
         utils::capture.output(
-          DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
+          #DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
+
+          DF <- randomForest::rfImpute(as.formula(frm), DF, iter = 3, ntree = 50 )
         )
        }
       names(DF)[1] <- treat
       DF = agricolae::tapply.stat(DF, DF[, treat])
       DF = DF[, -c(2)]
-      names(DF)[1] = "germplasmName"
-      row.names(DF) = DF$germplasmName
+      names(DF)[1] = treat #"germplasmName"
+      row.names(DF) = DF[, treat]
       DF = DF[, -c(1)]
       options(warn = 0)
 
@@ -374,6 +514,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
   output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
+    req(input$fba_set_trt)
     out = NULL
     withProgress(message = "Creating spatial map ...", {
     fm_DF = fbInput()
@@ -393,10 +534,10 @@ fieldbook_analysis <- function(input, output, session, values){
     )
 
 
-    print("table reps")
-    print(table(reps))
+    # print("table reps")
+    # print(table(reps))
     validate(
-      need((length(unique(table(reps)[2])) == 1),
+      need((length(unique(table(reps))) == 1),
            "Only experiments with equal number of repetitions are currently supported.")
     )
 
@@ -409,9 +550,6 @@ fieldbook_analysis <- function(input, output, session, values){
       n_gen <- length(unique(fm_DF[, input$fba_set_gen]))
 
       n_row <- nrow(fm_DF)
-
-      #print(n_row %% (n_gen * n_rep))
-
       n_row %% (n_gen * n_rep) == 0
     }
 
@@ -457,6 +595,7 @@ fieldbook_analysis <- function(input, output, session, values){
   })
 
   get_ph_corr <- reactive({
+    req(input$fba_set_trt)
     DF <- fbInput()
     trt = has_more_traits()
     shiny::withProgress(message = 'Imputing missing values', {
@@ -502,6 +641,7 @@ output$phDens_output = renderPlot({
 
   #par(mar=c(3,1,1,10))
   DF <- fbInput()
+  validate_table(DF)
 
   validate_table(DF)
 
