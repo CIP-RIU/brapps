@@ -463,9 +463,9 @@ fieldbook_analysis <- function(input, output, session, values){
     #print(names(DF))
 
     for(i in 2:ncol(DF)){
-      try({
+      #try({
         DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
-      })
+      #})
 
     }
 
