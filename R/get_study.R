@@ -22,34 +22,6 @@ get_study <- function(year = NULL, id, crop = "sweetpotato", amode = "brapi", is
   }
 
 
-<<<<<<< HEAD
- if(amode == "brapi"){
-   # fp = file.path(fbglobal::get_base_dir(amode = amode, is_server = is_server), crop, "fieldbooks",
-   #                paste0(id, ".rds"))
-   # sty = NULL
-   # if(file.exists(fp)){
-   #   sty =  try({
-   #     readRDS(fp)
-   #   })
-   #
-   # }
-   # return(sty)
- }
-=======
- # if(amode == "brapi"){
- #   fp = file.path(fbglobal::get_base_dir(amode = amode, is_server = is_server), crop, "fieldbooks",
- #                  paste0(id, ".rds"))
- #   sty = NULL
- #   if(file.exists(fp)){
- #     sty =  try({
- #       readRDS(fp)
- #     })
- #
- #   }
- #   return(sty)
- # }
->>>>>>> 0b1b69c51027f8fadccb799ebd4d6bd6b84c53c1
-
   bd = get_base_data(acrop = crop, amode = amode)
   #print(paste("bd", bd))
   lf = list.files(bd, recursive =  TRUE, full.names = TRUE)

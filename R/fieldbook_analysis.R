@@ -202,17 +202,6 @@ fieldbook_analysis <- function(input, output, session, values){
       #   names(sl) = sts$name
       #   sl
       # }
-<<<<<<< HEAD
-      sl = NULL
-      if( input$fba_src_type == "brapi"){
-
-      }
-=======
-      # sl = NULL
-      # if( input$fba_src_type == "brapi"){
-      #   sl = get_sl_from_brapi()
-      # }
->>>>>>> 0b1b69c51027f8fadccb799ebd4d6bd6b84c53c1
 
 
       # if( input$fba_src_type == "Default"){

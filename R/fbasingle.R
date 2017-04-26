@@ -63,9 +63,9 @@ visuals <- function(){
   )
 }
 
-# get_crops <- function(amode = "Demo"){
-#   list.dirs(fbglobal::get_base_dir(amode), recursive = FALSE) %>% basename()
-# }
+get_crops <- function(amode = "Demo"){
+  list.dirs(fbglobal::get_base_dir(amode), recursive = FALSE) %>% basename()
+}
 
 
 #' fbasingle_ui
@@ -75,7 +75,7 @@ visuals <- function(){
 #'
 #' @return shiny tag list
 #' @export
-fbasingle_ui <- function(title=""){
+fbasingle_ui <- function(title="") {
   #tagList(
 
   bdb <- brapi::ba_db()
@@ -94,26 +94,12 @@ fbasingle_ui <- function(title=""){
                   tabPanel("Source",
                    fluidRow(
                      column(width = 3,
-<<<<<<< HEAD
+
                             radioButtons("fba_src_type", "Select a source type",
                                          list("Default" = "Default"
                                               ,
                                               "Database (using BrAPI)" = "Brapi"
                                               ,"File" = "Local"
-=======
-                            radioButtons("fba_src_crop", "Select a crop",
-                                         #get_crops(),
-                                         c("potato", "sweetpotato"),
-                                         inline = TRUE)
-                            ),
-                     column(width = 3,
-                            radioButtons("fba_src_type", "Select a source type",
-                                         list(#"Default" = "Default"
-                                              #,
-                                              # "Database (using BrAPI)" = "brapi"
-                                              #,
-                                              "File" = "Local"
->>>>>>> 0b1b69c51027f8fadccb799ebd4d6bd6b84c53c1
                                          ),
                                          "Default",
                                          inline = TRUE),
@@ -125,6 +111,12 @@ fbasingle_ui <- function(title=""){
                               shinyFilesButton('fb_Input',
                                                label = 'File select',
                                                title = 'Please select a file', multiple=FALSE)
+                            ),
+
+                            conditionalPanel(
+                              condition = "input.fba_src_type == 'Brapi'",
+                              shiny::selectInput("baui_bdb", "BrAPI database", ndb)
+
                             )
                             ),
                      column(width = 3,
@@ -133,6 +125,11 @@ fbasingle_ui <- function(title=""){
                               radioButtons("fba_src_crop", "Select a crop",
                                            get_crops(),
                                            inline = TRUE)
+                            ),
+                            conditionalPanel(
+                              condition = "input.fba_src_type == 'Brapi'",
+                              shiny::checkboxInput("baui_chk_prg", "Use Breeding Programs as filter", value = FALSE),
+                              shiny::uiOutput("baui_prgs")
                             )
                      ),
                     column(width = 6,
@@ -146,9 +143,6 @@ fbasingle_ui <- function(title=""){
                            ),
                            conditionalPanel(
                              condition = "input.fba_src_type == 'Brapi'",
-                             shiny::selectInput("baui_bdb", "BrAPI database", ndb),
-                             shiny::checkboxInput("baui_chk_prg", "Use Breeding Programs as filter", value = FALSE),
-                             shiny::uiOutput("baui_prgs"),
                              shiny::uiOutput("baui_stds")
                            )
 
