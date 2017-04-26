@@ -267,13 +267,12 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     output$fbParams <- renderUI({
-      #req(aFilePath())
-      #req(input$fbaInput)
-      #print(input$fbaInput)
+      req(input$fba_src_type)
       out = NULL
       if( input$fba_src_type == "Default") return(gather_params())
       if( input$fba_src_type == "Brapi") return(gather_params())
       if( input$fba_src_type == "Local") {
+        req(input$fbaInput)
         if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
       }
     })
@@ -373,8 +372,13 @@ fieldbook_analysis <- function(input, output, session, values){
     )
 
     validate(
-      need((max(table(reps)[2]) < 501),
-           "Only experiments with up to 500 distinct genotypes are currently supported.")
+      need(max(table(reps)[2]) * length(unique(fm_DF[, input$fba_set_gen])) == nrow(fm_DF),
+           "Number of rows must be a multiple of the number of genotypes.")
+    )
+
+    validate(
+      need((max(table(reps)[2]) < 201),
+           "Only experiments with up to 200 distinct genotypes are currently supported.")
     )
 
 
