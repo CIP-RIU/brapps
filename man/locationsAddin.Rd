@@ -15,4 +15,3 @@ Displays a dialog view in RStudio and is accessible via the Addins menu.
 \seealso{
 Other addin: \code{\link{fieldbook_analysisAddin}}
 }
-

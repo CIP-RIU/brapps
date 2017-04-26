@@ -18,4 +18,3 @@ Adds an addin to the addins menu and shows a view within RStudio.
 \seealso{
 Other addin: \code{\link{locationsAddin}}
 }
-

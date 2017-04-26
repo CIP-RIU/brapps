@@ -4,6 +4,12 @@ visuals <- function(){
     column(width = 12,
            tabBox(width = NULL, #selected = "Map",
                   id = "tabAnalysis",
+                  tabPanel("Correlation",
+                           p("Mark at least two traits above."),
+                           qtlcharts::iplotCorr_output('vcor_output', height = 900)
+                           #)
+                  )
+                  ,
                   tabPanel("Spatial Map",
                            #d3heatmap::d3heatmapOutput("fieldbook_heatmap")
                            uiOutput("fieldbook_heatmap_ui")
@@ -13,24 +19,19 @@ visuals <- function(){
                            plotOutput('phDens_output', height = 400)
                   )
                   ,
-                  tabPanel("Correlation",
-                           p("Mark at least two traits above."),
-                           qtlcharts::iplotCorr_output('vcor_output', height = 900)
-                           #)
-                  )
-                  # ,
+
                   #
-                  # tabPanel("Heatmap Genotype x Trait",
-                  #          p("Mark at least two traits above."),
-                  #          #d3heatmap::d3heatmapOutput('phHeat_output', height = 1400)
-                  #          uiOutput("phHeat_output_ui")
-                  # )
+                  tabPanel("Heatmap Genotype x Trait",
+                           p("Mark at least two traits above."),
+                           #d3heatmap::d3heatmapOutput('phHeat_output', height = 1400)
+                           uiOutput("phHeat_output_ui")
+                  )
                   ,
-                  tabPanel("Dendrogram Genotypes",
+                  tabPanel("Dendrogram Phenotypes",
                            p("Mark at least two traits above."),
                            plotOutput('phDend_output', height = 1400)
                   )
-                  # ,
+                  #,
                   #
                   # tabPanel(title = "Report",
                   #
@@ -76,6 +77,13 @@ get_crops <- function(amode = "Demo"){
 #' @export
 fbasingle_ui <- function(title=""){
   #tagList(
+
+  bdb <- brapi::ba_db()
+
+  ndb <- names(bdb)
+  ndb <- ndb[!ndb %in% "mockbase"]
+
+
   shinydashboard::tabItem(tabName = title,
     h2("Single Chart"),
     fluidRow(
@@ -86,19 +94,16 @@ fbasingle_ui <- function(title=""){
                   tabPanel("Source",
                    fluidRow(
                      column(width = 3,
-                            radioButtons("fba_src_crop", "Select a crop",
-                                         get_crops(),
-                                         inline = TRUE)
-                            ),
-                     column(width = 3,
                             radioButtons("fba_src_type", "Select a source type",
                                          list("Default" = "Default"
-                                              #,
-                                              # "Database (using BrAPI)" = "brapi"
+                                              ,
+                                              "Database (using BrAPI)" = "Brapi"
                                               ,"File" = "Local"
                                          ),
                                          "Default",
                                          inline = TRUE),
+
+
                             conditionalPanel(
                               condition = "input.fba_src_type == 'Local'",
 
@@ -107,14 +112,29 @@ fbasingle_ui <- function(title=""){
                                                title = 'Please select a file', multiple=FALSE)
                             )
                             ),
+                     column(width = 3,
+                            conditionalPanel(
+                              condition = "input.fba_src_type != 'Brapi'",
+                              radioButtons("fba_src_crop", "Select a crop",
+                                           get_crops(),
+                                           inline = TRUE)
+                            )
+                     ),
                     column(width = 6,
                            conditionalPanel(
-                             condition = "input.fba_src_type != 'Local'",
+                             condition = "input.fba_src_type == 'Default'",
                              selectInput("fbaInput", "Fieldbook", choices = NULL)
                            ),
                            conditionalPanel(
                              condition = "input.fba_src_type == 'Local'",
                              verbatimTextOutput('filepaths')
+                           ),
+                           conditionalPanel(
+                             condition = "input.fba_src_type == 'Brapi'",
+                             shiny::selectInput("baui_bdb", "BrAPI database", ndb),
+                             shiny::checkboxInput("baui_chk_prg", "Use Breeding Programs as filter", value = FALSE),
+                             shiny::uiOutput("baui_prgs"),
+                             shiny::uiOutput("baui_stds")
                            )
 
                            )
@@ -123,7 +143,11 @@ fbasingle_ui <- function(title=""){
 
                  ),
                  tabPanel("Fieldbook",
-                  DT::dataTableOutput("hotFieldbook")
+                          # conditionalPanel(
+                          #   condition = "input.fba_src_type != 'Brapi'",
+                            DT::dataTableOutput("hotFieldbook")
+                          #)
+
                  )
 
              )

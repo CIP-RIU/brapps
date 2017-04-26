@@ -1,5 +1,5 @@
 library(shiny)
-#library(brapi)
+library(brapi)
 library(brapps)
 library(shinydashboard)
 library(d3heatmap)

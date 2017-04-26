@@ -73,16 +73,6 @@ fieldbook_analysis <- function(input, output, session, values){
   vols <- getVolumes(c("(E:)", "Page File (F:)"))
   shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes = c('', 'xls', 'xlsx'))
 
-  #brapi_host = brapi$db
-
-    # observeEvent(input$fba_src_type,{
-    #   print("Change of type!")
-    #   print(input$fba_src_type)
-    #   print(input$fbaInput)
-    #   updateSelectInput(session, "fbaInput", choices = NULL, selected = NULL)
-    #   print(input$fbaInput)
-    # }
-    # )
 
     dataInput <- reactive({
       req(aFilePath)
@@ -101,12 +91,68 @@ fieldbook_analysis <- function(input, output, session, values){
       fbId
     })
 
-    fbInput <- reactive({
-      #req(input$fbaInput)
-      #req(aFilePath())
-      #get_study(id = input$fbaInput, amode = input$fba_src_type, crop = input$fba_src_crop)
-      get_study(id = dataInput(), amode = input$fba_src_type, crop = input$fba_src_crop)
 
+
+    con <- shiny::reactive({
+      brapi::ba_db()[[input$baui_bdb]]
+    })
+
+    data_prg <- shiny::reactive({
+      shiny::withProgress(message = "Connecting", detail = "Loading programs",{
+        brapi::ba_programs(con())
+      })
+    })
+
+    data_std <- shiny::reactive({
+      shiny::withProgress(message = "Connecting", detail = "Loading studies",  {
+        std <- brapi::ba_studies_search(con())
+        if (input$baui_chk_prg) {
+          std <- std[std$programDbId == input$progrs, ]
+        }
+        return(std)
+      })
+    })
+
+    data_fdb <- shiny::reactive({
+      shiny::withProgress(message = "Connecting", detail = "Loading fieldbook",  {
+        std <- brapi::ba_studies_table(con(), input$studs, rclass = "data.frame")
+        return(std)
+      })
+    })
+
+
+
+    output$baui_prgs <- shiny::renderUI({
+      shiny::req(input$baui_chk_prg)
+      if (input$baui_chk_prg) {
+        prg <- as.list(data_prg()$programDbId)
+        names(prg) <- data_prg()$name
+        shiny::selectInput("progrs", "Breeding programs", choices = prg,
+                           selected = prg[1])
+      }
+    })
+
+    output$baui_stds <- shiny::renderUI({
+      std <- as.list(data_std()$studyDbId)
+      names(std) <- data_std()$studyName
+      #print(std)
+      std <- std[!is.na(std)]
+
+      shiny::selectInput("studs", "Breeding studies (fieldbooks)", choices = std,
+                         selected = std[1])
+    })
+
+
+    fbInput <- reactive({
+    out <- NULL
+      if(input$fba_src_type == "Brapi") {
+        out <- data_fdb()
+        colnames(out) <- toupper(colnames(out))
+      } else {
+        out <- get_study(id = dataInput(), amode = input$fba_src_type, crop = input$fba_src_crop)
+      }
+
+    out
     })
 
 
@@ -141,21 +187,22 @@ fieldbook_analysis <- function(input, output, session, values){
     #
     observeEvent(input$fba_src_type, {
       #req(input$fba_src_type)
+      bd <- NULL
       updateSelectInput(session, "fbaInput", choices = NA, selected = NA)
       output$filepaths <- renderPrint({
         parseFilePaths(vols, input$fb_Input)$datapath[1] %>% as.character()
         })
 
-       get_sl_from_brapi <- function(){
-        sts = fbList()
-        if(is.null(sts)) return()
-        sl = as.list(sts$studyDbId)
-        names(sl) = sts$name
-        sl
-      }
+      #  get_sl_from_brapi <- function(){
+      #   sts = fbList()
+      #   if(is.null(sts)) return()
+      #   sl = as.list(sts$studyDbId)
+      #   names(sl) = sts$name
+      #   sl
+      # }
       sl = NULL
       if( input$fba_src_type == "brapi"){
-        sl = get_sl_from_brapi()
+
       }
 
 
@@ -222,10 +269,11 @@ fieldbook_analysis <- function(input, output, session, values){
 
     output$fbParams <- renderUI({
       #req(aFilePath())
-      req(input$fbaInput)
+      #req(input$fbaInput)
       #print(input$fbaInput)
       out = NULL
       if( input$fba_src_type == "Default") return(gather_params())
+      if( input$fba_src_type == "Brapi") return(gather_params())
       if( input$fba_src_type == "Local") {
         if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
       }
@@ -298,42 +346,51 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
   output$fieldbook_heatmap <- d3heatmap::renderD3heatmap({
-    req(aFilePath())
-    req(input$fba_set_trt)
-    #req(input$phFieldMapVarsUI)
-    #req(input$phFieldMapVars)
     out = NULL
     withProgress(message = "Creating spatial map ...", {
     fm_DF = fbInput()
-    #trt = input$phFieldMapVars
-    trt = input$fba_set_trt[1]
-    #print(trt)
-    if(is.null(trt)) return(NULL)
 
-    if(is.null(fm_DF)) return(NULL)
-    cn = colnames(fm_DF)
-    if(!(trt %in% cn)) return(NULL)
-    # print(colnames(fm_DF))
-    # print(str(fm_DF))
-    # print(input$fba_set_rep)
+    validate(
+      need( (nrow(fm_DF) > 1),
+        "Fieldbook must have more than one row of data."
+      )
+    )
 
     REP = "REP"
     try({
       REP = input$fba_set_rep
-      # print(REP)
+
     })
-    # print(REP)
+    reps <- fm_DF[, REP]
 
-    #attr(fm_DF, "meta") = list(variables = cn)
-    ##if (!is.null(ci)) trt = names(DF)[ci]
-    # print(head(fm_DF))
-    # print(str(fm_DF))
-    # print(input$fba_set_gen)
-    # print(REP)
-    # print(input$fba_set_plt)
+    validate(
+      need( (length(unique(reps)) > 1),
+            "Only experiments with more than 1 replication are currently supported.")
+    )
+
+    validate(
+      need((length(unique(table(reps)[2])) == 1),
+           "Only experiments with equal number of repetitions are currently supported.")
+    )
+
+    validate(
+      need((max(table(reps)[2]) < 501),
+           "Only experiments with up to 500 distinct genotypes are currently supported.")
+    )
+
+
+    #trt = input$phFieldMapVars
+    trt = input$fba_set_trt[1]
     # print(trt)
+    # print(colnames(fm_DF))
+    if(is.null(trt)) return(NULL)
+    # print("heatmap 1")
 
-
+    if(is.null(fm_DF)) return(NULL)
+    # print("heatmap 2")
+    cn = colnames(fm_DF)
+    # print(cn)
+    if(!(trt %in% cn)) return(NULL)
 
     fm <- fbmaterials::fb_to_map(fm_DF,
                                  gt = input$fba_set_gen, #"germplasmName", #input[["def_genotype"]],

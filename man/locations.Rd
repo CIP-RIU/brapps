@@ -21,4 +21,3 @@ locations
 \author{
 Reinhard Simon
 }
-

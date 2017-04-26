@@ -18,4 +18,3 @@ locationsUI
 \author{
 Reinhard Simon
 }
-

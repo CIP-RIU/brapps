@@ -21,4 +21,3 @@ fieldbook_analysis
 \author{
 Reinhard Simon
 }
-

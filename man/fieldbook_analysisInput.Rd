@@ -17,4 +17,3 @@ Creates a shiny based widget to collect field book analysis parameters.
 \author{
 Reinhard Simon
 }
-
