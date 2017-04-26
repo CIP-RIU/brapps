@@ -4,8 +4,9 @@ library(brapps)
 library(shinydashboard)
 library(d3heatmap)
 library(rhandsontable)
-library(shinyURL)
+#library(shinyURL)
 library(shinyFiles)
+library(DT)
 
 ui <- dashboardPage(skin = "yellow",
                     dashboardHeader(title = "HIDAP"),
