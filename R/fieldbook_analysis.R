@@ -381,27 +381,17 @@ fieldbook_analysis <- function(input, output, session, values){
            "Only experiments with up to 200 distinct genotypes are currently supported.")
     )
 
-
-    #trt = input$phFieldMapVars
     trt = input$fba_set_trt[1]
-    # print(trt)
-    # print(colnames(fm_DF))
     if(is.null(trt)) return(NULL)
-    # print("heatmap 1")
 
     if(is.null(fm_DF)) return(NULL)
-    # print("heatmap 2")
     cn = colnames(fm_DF)
-    # print(cn)
     if(!(trt %in% cn)) return(NULL)
 
     fm <- fbmaterials::fb_to_map(fm_DF,
-                                 gt = input$fba_set_gen, #"germplasmName", #input[["def_genotype"]],
-                                 #gt = "TRT1",
-
-                                 rep = REP, #"REP", #input[["def_rep"]],
-                                 # blk = input[["def_block"]],
-                                 plt = input$fba_set_plt, #"PLOT"  #input[["def_plot"]]
+                                 gt = input$fba_set_gen,
+                                 rep = REP,
+                                 plt = input$fba_set_plt,
                                  variable = trt
     )
     amap = fm[["map"]]
