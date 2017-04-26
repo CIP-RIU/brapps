@@ -15,7 +15,7 @@ get_os <- function(){
 }
 
 is_server <- function() {
-  if(get_os() != "windows") return(TRUE)
+  if(!(get_os() %in% c("windows", "osx"))) return(TRUE)
   return(FALSE)
 }
 
@@ -483,7 +483,7 @@ fieldbook_analysis <- function(input, output, session, values){
       names(DF)[1] <- treat
       #print(head(DF))
       # print(y)
-      if (all(!is.na(y))) {
+      if (any(is.na(x)) & !any(is.na(y))) {
         #frm <- paste0(treat, " ~ ", paste(names(DF[, 2:ncol(DF)]), collapse = "+"))
         frm <- paste0(treat, " ~ .")
         #print(frm)
@@ -638,14 +638,21 @@ output$phDens_output = renderPlot({
   #req(input$fba_set_trt)
   #req(input$phDens)
   req(input$fba_set_trt)
+  req(input$fba_set_rep)
 
   #par(mar=c(3,1,1,10))
   DF <- fbInput()
   validate_table(DF)
 
-  validate_table(DF)
-
   REP =  input$fba_set_rep
+  validate(
+    need((!all(is.na(DF[, c(REP)]))),
+         "Need a column indicating the replication."
+         )
+  )
+
+
+
   if(!(REP %in% names(DF))) return(NULL)
   if(any(is.null(DF[, REP]))) return(NULL)
 
@@ -655,15 +662,25 @@ output$phDens_output = renderPlot({
   if(!(titl %in% cn)) return(NULL)
   #titl = input$phDens
 
+  # if (all(is.na(DF[, c(REP)]))) {
+  #   DF <- DF[, c(titl)]
+  #   DF[, 1] <- as.numeric(DF[, 1])
+  #   n = max(DF[, REP])
+  #   cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")
+  #
+  #   dens <- density(DF[DF[, 1], 1], na.rm = TRUE)
+  #
+  # } else {
+    DF <- DF[, c(REP, titl)]
+    DF[, 2] <- as.numeric(DF[, 2])
+    n = max(DF[, REP])
+    cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")
 
-  DF <- DF[, c(REP, titl)]
-  #print(str(DF))
-  #print(head(DF))
-  DF[, 2] <- as.numeric(DF[, 2])
-  n = max(DF[, REP])
-  cls = c("black", "blue", "red", "orange", "darkgreen", "grey60")
+    dens <- density(DF[DF[, REP], 2], na.rm = TRUE)
 
-  dens <- density(DF[DF[, REP], 2], na.rm = TRUE)
+  #}
+
+
 
   dds = list(n+1)
   dds[[1]] = dens$y / max(dens$y)
