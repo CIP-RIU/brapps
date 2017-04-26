@@ -457,9 +457,15 @@ fieldbook_analysis <- function(input, output, session, values){
 
     na_count <- sapply(DF, function(y) sum(length(which(is.na(y)))))
     too_many_na <- na_count / nrow(DF) > 0.1
-    #print(too_many_na)
+    # #print(too_many_na)
+    #
+    stm <- sum(too_many_na)
+    if (stm > 1) {
+      shiny::showNotification(paste(stm,
+                      "traits/variables are excluded since they have more than 10% missing data."))
+      DF <- DF[, !too_many_na]
+    }
 
-    DF <- DF[, !too_many_na]
     #print(names(DF))
 
     for(i in 2:ncol(DF)){
