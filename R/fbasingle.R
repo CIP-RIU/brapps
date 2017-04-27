@@ -89,9 +89,9 @@ fbasingle_ui <- function(title="") {
                   tabPanel("About",
                     HTML("Use this module to visually assess your data.</br>
                          Switch to the tab ‘Source’:</br>
-                         this may take a bit as it activates the link to a remote database</br>
+                         in the online version this may take a bit as it directly activates the link to a remote database</br>
                          via the BrAPI protocol.</br></br>
-                         The online server has a time-limit resulting in a message ‘Disconnected from server’ after some time of inactivity. Just ‘reload or refres the page’.
+                         The online backend server has a time-limit resulting in a message ‘Disconnected from server’ after some time of inactivity. Just ‘reload or refres the page’.
                          ")
                   ),
                   tabPanel("Source",
