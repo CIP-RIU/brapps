@@ -87,7 +87,12 @@ fbasingle_ui <- function(title="") {
                  title = "Data",
                  shinydashboard::tabBox("Details", width = 12,
                   tabPanel("About",
-                    HTML("Use this module to visually assess your data.")
+                    HTML("Use this module to visually assess your data.</br>
+                         Switch to the tab ‘Source’:</br>
+                         this may take a bit as it activates the link to a remote database</br>
+                         via the BrAPI protocol.</br></br>
+                         The online server has a time-limit resulting in a message ‘Disconnected from server’ after some time of inactivity. Just ‘reload or refres the page’.
+                         ")
                   ),
                   tabPanel("Source",
                    fluidRow(
