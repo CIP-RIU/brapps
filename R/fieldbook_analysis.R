@@ -259,8 +259,9 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     fbInput <- reactive({
-
+    #req(input$fbaInput)
     out <- NULL
+    updateSelectInput(session, "fba_set_trt", choices = NULL)
     if (!is_server()) {
       if(input$fba_src_type == "Brapi") {
         out <- data_fdb()
@@ -369,6 +370,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     gather_params <- function(){
+      #req(input$fbaInput)
       withProgress(message = "Getting trial info ...", {
         cn = colnames(fbInput()) %>% toupper()
         ep = extract_params(cn)
@@ -448,11 +450,13 @@ fieldbook_analysis <- function(input, output, session, values){
 
   phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
     req(input$fba_set_trt)
+    req(input$fba_set_gen)
     validate_table(DF)
 
     treat <- input$fba_set_gen
     if(length(trait) < 2) return(NULL)
     if(!all(trait %in% names(DF))) return(NULL)
+    if(any(is.na(DF[, input$fba_set_gen]))) return(NULL)
     DF = DF[, c(treat, trait)]
 
     na_count <- sapply(DF, function(y) sum(length(which(is.na(y)))))
@@ -470,7 +474,9 @@ fieldbook_analysis <- function(input, output, session, values){
 
     for(i in 2:ncol(DF)){
       #try({
+      if(all(is.na(DF[, i]))) return(NULL)
         DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
+
       #})
 
     }
@@ -492,11 +498,18 @@ fieldbook_analysis <- function(input, output, session, values){
       if (any(is.na(x)) & !any(is.na(y))) {
         #frm <- paste0(treat, " ~ ", paste(names(DF[, 2:ncol(DF)]), collapse = "+"))
         frm <- paste0(treat, " ~ .")
-        #print(frm)
+        str(DF)
+        print(frm)
+        print(head(DF))
+        print(summary(DF))
         utils::capture.output(
           #DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
 
           DF <- randomForest::rfImpute(stats::as.formula(frm), DF, iter = 3, ntree = 50 )
+          # for(i in 2:ncol(DF)) {
+          #   DF <- plyr::ddply(DF, treat, plyr::mutate, imputed.value = Hmisc::impute(DF[, i], mean) )
+          # }
+
         )
        }
       names(DF)[1] <- treat
@@ -602,6 +615,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
   get_ph_corr <- reactive({
     req(input$fba_set_trt)
+    req(input$fba_set_gen)
     DF <- fbInput()
     trt = has_more_traits()
     shiny::withProgress(message = 'Imputing missing values', {
