@@ -355,17 +355,24 @@ fieldbook_analysis <- function(input, output, session, values){
 
     extract_params <- function(cn) {
 
-      gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GENO|GERMPLASMNAME|CIPNUMBER"))[1]
+      gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GEN|GERMPLASMNAME|CIPNUMBER"))[1]
       bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
       rpi= which(stringr::str_detect(cn, "REP|REPL|REPLICATION" ))[1]
       pti= which(stringr::str_detect(cn, "PLOT|PLT" ))[1]
       ci = 1:length(cn)
       fcs = c(gti, bki, rpi, pti)
-      tti= ci[!ci %in% fcs]
+      tti = ci[!ci %in% fcs]
       fci = max(fcs)
       tti = max((length(cn) - 3), min(tti)):length(cn)
+      # Filter out names in factors!
+      # ignore all NA
+      # ignore > 10% NA
+      # ignore where only one value
+      # ignore where character
+
       tn = cn[tti]
-      list(tn = tn,tti = tti, gti = gti,bki = bki, rpi = rpi, pti= pti, ci = ci)
+      tn <- tn[!fcs %in% cn]
+      list(tn = tn,tti = tti, gti = gti,bki = bki, rpi = rpi, pti = pti, ci = ci)
     }
 
 
@@ -383,8 +390,8 @@ fieldbook_analysis <- function(input, output, session, values){
           )
           ,
           fluidRow(width = 12,
-                   column(width = 12,selectInput("fba_set_trt", "Traits", choices = cn
-                                                 , selected = ep$tn
+                   column(width = 12,selectInput("fba_set_trt", "Traits", choices = ep$tn
+                                                 , selected = ep$tn[1]
                                                  , multiple = TRUE))
           )
         )
@@ -464,9 +471,9 @@ fieldbook_analysis <- function(input, output, session, values){
 
     out <- NULL
     print(str(DF))
-    print(class(DF))
-    print(head(DF))
-    print(DF[, 1])
+    # print(class(DF))
+    # print(head(DF))
+    # print(DF[, 1])
     try({
 
     if(any(is.na(DF[, input$fba_set_gen]))) return(NULL)
@@ -509,7 +516,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
       #print(head(DF))
       # print(y)
-      #if (any(is.na(x)) & !any(is.na(y))) {
+      if (any(is.na(x)) & !any(is.na(y))) {
         #frm <- paste0(treat, " ~ ", paste(names(DF[, 2:ncol(DF)]), collapse = "+"))
         frm <- paste0(treat, " ~ .")
         # str(DF)
@@ -521,6 +528,7 @@ fieldbook_analysis <- function(input, output, session, values){
             DF <- randomForest::rfImpute(stats::as.formula(frm), DF #, iter = 3, ntree = 50
                                          )
           )
+      }
 
 
       names(DF)[1] <- treat
@@ -631,8 +639,8 @@ fieldbook_analysis <- function(input, output, session, values){
     req(input$fba_set_gen)
     DF <- fbInput()
     trt = has_more_traits()
-    print("====")
-    print(trt)
+    # print("====")
+    # print(trt)
     shiny::withProgress(message = 'Imputing missing values', {
       out = phCorr(DF, trt, useMode = "dendo")
     })
