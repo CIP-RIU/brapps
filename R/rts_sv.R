@@ -1,6 +1,10 @@
 
 rts1_sv <- function(input, output, session, values) {
   output$rtsplot1 <- shiny::renderPlot( {
+    shiny::req(input$N)
+    shiny::req(input$sg1)
+    shiny::req(input$sigmaG2)
+    shiny::req(input$sigmaE2)
 
     N <- input$N
     sg1 <- input$sg1
@@ -26,6 +30,12 @@ rts1_sv <- function(input, output, session, values) {
 
 rts2_sv <- function(input, output, session, values) {
 output$rtsplot2 <- shiny::renderPlot( {
+  shiny::req(input$N)
+  shiny::req(input$sg1)
+  shiny::req(input$sigmaG2)
+  shiny::req(input$sigmaE2)
+  shiny::req(input$sigmaGL2)
+  shiny::req(input$k)
 
   N <- input$N
   k <- input$k
@@ -54,6 +64,16 @@ output$rtsplot2 <- shiny::renderPlot( {
 
 rts3_sv <- function(input, output, session, values){
   output$rtsplot3 <- shiny::renderPlot( {
+    shiny::req(input$N)
+    shiny::req(input$sg1)
+    shiny::req(input$sigmaG2)
+    shiny::req(input$sigmaE2)
+    shiny::req(input$sigmaGL2)
+    shiny::req(input$k)
+    shiny::req(input$q)
+    shiny::req(input$sigmaGY2)
+    shiny::req(input$sigmaGLY2)
+    shiny::req(input$sigmaE2)
 
     N <- input$N
     k <- input$k
