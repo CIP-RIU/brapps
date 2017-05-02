@@ -451,13 +451,25 @@ fieldbook_analysis <- function(input, output, session, values){
   phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
     req(input$fba_set_trt)
     req(input$fba_set_gen)
+    # if (length(dim(DF)) < 2) return(NULL)
+    # if (!is.data.frame(DF)) return(NULL)
+    # if (any(is.na(DF[, 1]))) return(NULL)
     validate_table(DF)
 
     treat <- input$fba_set_gen
     if(length(trait) < 2) return(NULL)
     if(!all(trait %in% names(DF))) return(NULL)
-    if(any(is.na(DF[, input$fba_set_gen]))) return(NULL)
+
     DF = DF[, c(treat, trait)]
+
+    out <- NULL
+    print(str(DF))
+    print(class(DF))
+    print(head(DF))
+    print(DF[, 1])
+    try({
+
+    if(any(is.na(DF[, input$fba_set_gen]))) return(NULL)
 
     na_count <- sapply(DF, function(y) sum(length(which(is.na(y)))))
     too_many_na <- na_count / nrow(DF) > 0.1
@@ -471,11 +483,11 @@ fieldbook_analysis <- function(input, output, session, values){
     }
 
     #print(names(DF))
-
+    if(any(is.na(DF[, 1]))) return(NULL)
     for(i in 2:ncol(DF)){
       #try({
-      if(all(is.na(DF[, i]))) return(NULL)
-        DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
+      if (all(is.na(DF[, i]))) return(NULL)
+      DF[, i] = DF[, i] %>% as.character() %>% as.numeric()
 
       #})
 
@@ -493,25 +505,24 @@ fieldbook_analysis <- function(input, output, session, values){
       y <- DF[, treat] %>% as.factor
       DF <- cbind(y, x)
       names(DF)[1] <- treat
+
+
       #print(head(DF))
       # print(y)
-      if (any(is.na(x)) & !any(is.na(y))) {
+      #if (any(is.na(x)) & !any(is.na(y))) {
         #frm <- paste0(treat, " ~ ", paste(names(DF[, 2:ncol(DF)]), collapse = "+"))
         frm <- paste0(treat, " ~ .")
-        str(DF)
-        print(frm)
-        print(head(DF))
-        print(summary(DF))
-        utils::capture.output(
-          #DF <- randomForest::rfImpute(x = x, y = y, iter = 3, ntree = 50 )
+        # str(DF)
+        # print(frm)
+        # print(head(DF))
+        # print(summary(DF))
 
-          DF <- randomForest::rfImpute(stats::as.formula(frm), DF, iter = 3, ntree = 50 )
-          # for(i in 2:ncol(DF)) {
-          #   DF <- plyr::ddply(DF, treat, plyr::mutate, imputed.value = Hmisc::impute(DF[, i], mean) )
-          # }
+          utils::capture.output(
+            DF <- randomForest::rfImpute(stats::as.formula(frm), DF #, iter = 3, ntree = 50
+                                         )
+          )
 
-        )
-       }
+
       names(DF)[1] <- treat
       DF = agricolae::tapply.stat(DF, DF[, treat])
       DF = DF[, -c(2)]
@@ -521,7 +532,9 @@ fieldbook_analysis <- function(input, output, session, values){
       options(warn = 0)
 
     #})
-    DF
+    out <- DF
+      })
+      out
   }
 # end phCorr
 
@@ -618,6 +631,8 @@ fieldbook_analysis <- function(input, output, session, values){
     req(input$fba_set_gen)
     DF <- fbInput()
     trt = has_more_traits()
+    print("====")
+    print(trt)
     shiny::withProgress(message = 'Imputing missing values', {
       out = phCorr(DF, trt, useMode = "dendo")
     })
@@ -627,6 +642,12 @@ fieldbook_analysis <- function(input, output, session, values){
 
   output$vcor_output = qtlcharts::iplotCorr_render({
     req(input$fba_set_trt)
+    req(input$fba_set_gen)
+    validate(
+      need(!any(input$fba_set_trt %in% input$fba_set_rep) ,
+        "Traits must not be one of the factors."
+      )
+    )
     shiny::withProgress(message = 'Creating graph ...', {
       iplotCorr(get_ph_corr())
     })
