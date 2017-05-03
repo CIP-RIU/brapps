@@ -363,16 +363,18 @@ fieldbook_analysis <- function(input, output, session, values){
       fcs = c(gti, bki, rpi, pti)
       tti = ci[!ci %in% fcs]
       fci = max(fcs)
-      tti = max((length(cn) - 3), min(tti)):length(cn)
+      #tti = max((length(cn) - 3), min(tti)):length(cn)
       # Filter out names in factors!
-      # ignore all NA
-      # ignore > 10% NA
-      # ignore where only one value
-      # ignore where character
+      # heuristic! Factors are not mixed with the variables, so the maximum index indicates
+      # the last factor variable!
+
+      # trait names options
+      tni <- (fci + 1):length(cn)
+      tno <- cn[tni]
 
       tn = cn[tti]
       tn <- tn[!fcs %in% cn]
-      list(tn = tn,tti = tti, gti = gti,bki = bki, rpi = rpi, pti = pti, ci = ci)
+      list(tn = tno, tti = tti, gti = gti,bki = bki, rpi = rpi, pti = pti, ci = ci)
     }
 
 
@@ -470,7 +472,7 @@ fieldbook_analysis <- function(input, output, session, values){
     DF = DF[, c(treat, trait)]
 
     out <- NULL
-    print(str(DF))
+    #print(str(DF))
     # print(class(DF))
     # print(head(DF))
     # print(DF[, 1])

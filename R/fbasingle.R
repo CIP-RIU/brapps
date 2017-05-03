@@ -91,7 +91,7 @@ fbasingle_ui <- function(title="") {
                          Switch to the tab ‘Source’:</br>
                          in the online version this may take a bit as it directly activates the link to a remote database</br>
                          via the BrAPI protocol.</br></br>
-                         The online backend server has a time-limit resulting in a message ‘Disconnected from server’ after some time of inactivity. Just ‘reload or refres the page’.
+                         The online backend server has a time-limit resulting in a message ‘Disconnected from server’ after some time of inactivity. Just ‘reload or refresh the page’.
                          ")
                   ),
                   tabPanel("Source",
