@@ -10,8 +10,8 @@ Imports:
     agricolae, d3heatmap, httr, magrittr, qtlcharts, shiny,
     shinydashboard, progress,
     DT, randomForest, 
-    stringr, withr, shinyFiles, fbglobal,  brapi
-Remotes:  c5sire/shinyFiles, c5sire/fbglobal, c5sire/brapi
+    stringr, withr, shinyFiles, fbglobal, fbmaterials, brapi
+Remotes:  c5sire/shinyFiles, c5sire/fbglobal, c5sire/fbmaterials, c5sire/brapi
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
