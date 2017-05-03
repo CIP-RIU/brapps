@@ -97,6 +97,8 @@ locations <- function(input, output, session, values) {
     out$latitude <- as.numeric(out$latitude)
     out$longitude <- as.numeric(out$longitude)
     out = out[!is.na(out$latitude),]
+    stds <- brapi::ba_studies_search(con)
+    out <- merge(out, stds, by="locationDbId")
     out
   }
 
@@ -126,7 +128,9 @@ locations <- function(input, output, session, values) {
     pts <- dat()
     validate(
       need(is.data.frame(pts), "Need a location table."),
-      need(is.numeric(pts$longitude), "Need numeric longitude data.")
+      need(is.numeric(pts$longitude), "Need numeric longitude data."),
+      need(is.numeric(pts$latitude), "Need numeric latitude data."),
+      need(nrow(pts) > 0, "Need at least one location.")
     )
     # if (is.null(pts))
     #   pts <- dat()
@@ -138,7 +142,9 @@ locations <- function(input, output, session, values) {
 
     leaflet::leaflet(pts, height = "100%") %>%
       leaflet::addTiles() %>%
-      leaflet::addAwesomeMarkers(clusterOptions = leaflet::markerClusterOptions(clickable = T)) %>%
+      leaflet::addAwesomeMarkers(~longitude, ~latitude,
+                                   popup = ~htmltools::htmlEscape(studyName),
+                    clusterOptions = leaflet::markerClusterOptions(clickable = T)) %>%
       leaflet::fitBounds(
         ~ min(pts$longitude),
         ~ min(pts$latitude),

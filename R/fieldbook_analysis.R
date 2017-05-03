@@ -1,52 +1,52 @@
 
 
-repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, block = 1, k = 1,
-                          title = paste0("Automatic report for a ",toupper(areport), " design"),
-                          subtitle = NULL, author = "International Potato Center",
-                          format = c("html", "word", "pdf"))
-{
-  format   <- paste(match.arg(format), "_document", sep = "")
-  fmt = "html"
-  if(stringr::str_detect(format, "word")){
-    fmt = "docx"
-  }
-  if(stringr::str_detect(format, "pdf")){
-    fmt = "pdf"
-  }
-  dirfiles <- file.path("www", "reports") #system.file("rmd", package = "pepa")
-  outdir   <- file.path("www", "reports")
-  fileRmd  <- file.path(dirfiles, paste0(areport, ".Rmd"))
-  # fileURL  <- file.path(outdir, paste0(areport, ".html"))
-  # fileDOCX <- file.path(outdir, paste0(areport, ".docx"))
-  # filePDF  <- file.path(outdir, paste0(areport, ".pdf"))
-  out = "No report could be created."
-  if(areport != "a01d" ){
-    out = rmarkdown::render(fileRmd, output_format = format,
-                      output_dir = outdir,
-                      params = list(traits = traits,
-                                    geno = geno, rep = rep, data = data, maxp = maxp, title = title,
-                                    #block = block, k = k,
-                                    subtitle = subtitle, author = author))
-
-  } else {
-    out = rmarkdown::render(fileRmd, output_format = format,
-                      output_dir = outdir,
-                      params = list(traits = traits,
-                                    geno = geno, rep = rep, data = data, maxp = maxp, title = title,
-                                    block = block, k = k,
-                                    subtitle = subtitle, author = author))
-
-  }
-  # if (format == "html_document")
-  #   try(browseURL(fileURL))
-  # if (format == "word_document")
-  #   try(system(paste("open", fileDOCX)))
-  # if (format == "pdf_document")
-  #   try(system(paste("open", filePDF)))
-  #message(out)
-  file.path("reports", paste0(areport, ".", fmt))
-}
-
+# repo_ana <- function (areport = "rcbd", traits, geno, rep, data, maxp = 0.1, block = 1, k = 1,
+#                           title = paste0("Automatic report for a ",toupper(areport), " design"),
+#                           subtitle = NULL, author = "International Potato Center",
+#                           format = c("html", "word", "pdf"))
+# {
+#   format   <- paste(match.arg(format), "_document", sep = "")
+#   fmt = "html"
+#   if(stringr::str_detect(format, "word")){
+#     fmt = "docx"
+#   }
+#   if(stringr::str_detect(format, "pdf")){
+#     fmt = "pdf"
+#   }
+#   dirfiles <- file.path("www", "reports") #system.file("rmd", package = "pepa")
+#   outdir   <- file.path("www", "reports")
+#   fileRmd  <- file.path(dirfiles, paste0(areport, ".Rmd"))
+#   # fileURL  <- file.path(outdir, paste0(areport, ".html"))
+#   # fileDOCX <- file.path(outdir, paste0(areport, ".docx"))
+#   # filePDF  <- file.path(outdir, paste0(areport, ".pdf"))
+#   out = "No report could be created."
+#   if(areport != "a01d" ){
+#     out = rmarkdown::render(fileRmd, output_format = format,
+#                       output_dir = outdir,
+#                       params = list(traits = traits,
+#                                     geno = geno, rep = rep, data = data, maxp = maxp, title = title,
+#                                     #block = block, k = k,
+#                                     subtitle = subtitle, author = author))
+#
+#   } else {
+#     out = rmarkdown::render(fileRmd, output_format = format,
+#                       output_dir = outdir,
+#                       params = list(traits = traits,
+#                                     geno = geno, rep = rep, data = data, maxp = maxp, title = title,
+#                                     block = block, k = k,
+#                                     subtitle = subtitle, author = author))
+#
+#   }
+#   # if (format == "html_document")
+#   #   try(browseURL(fileURL))
+#   # if (format == "word_document")
+#   #   try(system(paste("open", fileDOCX)))
+#   # if (format == "pdf_document")
+#   #   try(system(paste("open", filePDF)))
+#   #message(out)
+#   file.path("reports", paste0(areport, ".", fmt))
+# }
+#
 
 
 #' fieldbook_analysis

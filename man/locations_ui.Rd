@@ -7,6 +7,8 @@
 locations_ui(id = "mapLocation", title = "Locations UI")
 }
 \arguments{
+\item{id}{string}
+
 \item{title}{string}
 }
 \value{

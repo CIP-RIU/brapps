@@ -1,6 +1,7 @@
 
 #' locations_ui
 #'
+#' @param id string
 #' @param title string
 #' @import shiny
 #' @author Reinhard Simon
@@ -13,6 +14,12 @@ locations_ui <- function(id = "mapLocation", title = "Locations UI"){
       column(width = 8
              ,
              shinydashboard::tabBox(width = NULL, id = id,
+                    tabPanel("About",
+                             HTML("")
+                    ),
+                    tabPanel("Source",
+                             HTML("")
+                    ),
                     tabPanel("Map",
                              leaflet::leafletOutput("mapLocs")
                     )
