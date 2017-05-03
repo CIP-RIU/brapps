@@ -7,14 +7,11 @@ Description: Functions for Demoing Breeding API.
 Depends:
     R (>= 3.2.4)
 Imports:
-    agricolae, d3heatmap, httr, magrittr, qtl, qtlcharts, shiny,
-    leaflet, shinydashboard, progress,
-    DT, fbmaterials, htmlTable, miniUI, randomForest, rmarkdown,
-    stringr, withr, shinyFiles, readxl, fbglobal, rstudioapi,
-    klaR, spdep, AlgDesign, base64enc, htmlwidgets, png, rhandsontable, st4gi, pepa,
-    bitops, scales, brapi
-Remotes: c5sire/fbmaterials,  c5sire/shinyFiles, c5sire/fbglobal, c5sire/brapi,
-  reyzaguirre/st4gi, reyzaguirre/pepa
+    agricolae, d3heatmap, httr, magrittr, qtlcharts, shiny,
+    shinydashboard, progress,
+    DT, randomForest, 
+    stringr, withr, shinyFiles, fbglobal,  brapi
+Remotes:  c5sire/shinyFiles, c5sire/fbglobal, c5sire/brapi
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
