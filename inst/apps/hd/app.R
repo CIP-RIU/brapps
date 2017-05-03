@@ -13,15 +13,19 @@ ui <- dashboardPage(skin = "yellow",
                     dropdownMenuOutput("notificationMenu")),
       dashboardSidebar(
         sidebarMenu(
-                   menuItem("Single Trial Analysis",
-                            menuSubItem("Single trial graph", tabName = "singleChart", icon = icon("calculator")),
-                            menuSubItem("Selection response", tabName = "selResponse", icon = icon("indent"))
-        )
+         menuItem("Single Trial Analysis",
+                  menuSubItem("Single trial graph", tabName = "singleChart", icon = icon("calculator")),
+                  menuSubItem("Selection response", tabName = "selResponse", icon = icon("indent"))
+        ),
+        menuItem("Program Overview",
+                 menuSubItem("Geographic distribution", tabName = "mapLocation", icon = icon("earth"))
+                 )
       )),
       dashboardBody(
         tabItems(
           brapps::rts_ui("selResponse"),
-          brapps::fbasingle_ui("singleChart")
+          brapps::fbasingle_ui("singleChart"),
+          brapps::locations_ui("mapLocation")
         )
 
       )
@@ -38,6 +42,8 @@ sv <- function(input, output, session) ({
 
   brapps::fieldbook_analysis(input, output, session, values)
   brapps::rts_sv(input, output, session, values)
+  brapps::locations(input, output, session, values)
+
 })
 
 shinyApp(ui, sv)

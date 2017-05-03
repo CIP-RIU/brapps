@@ -2,10 +2,13 @@
 
 export(fbasingle_ui)
 export(fieldbook_analysis)
+export(locations)
+export(locations_ui)
 export(rts_sv)
 export(rts_ui)
 import(agricolae)
 import(d3heatmap)
+import(leaflet)
 import(qtlcharts)
 import(shiny)
 importFrom(graphics,box)
