@@ -30,19 +30,19 @@ rts1_sv <- function(input, output, session, values) {
 
 rts2_sv <- function(input, output, session, values) {
 output$rtsplot2 <- shiny::renderPlot( {
-  shiny::req(input$N)
-  shiny::req(input$sg1)
-  shiny::req(input$sigmaG2)
-  shiny::req(input$sigmaE2)
-  shiny::req(input$sigmaGL2)
-  shiny::req(input$k)
+  shiny::req(input$rts2_N)
+  shiny::req(input$rts2_sg1)
+  shiny::req(input$rts2_sigmaG2)
+  shiny::req(input$rts2_sigmaE2)
+  shiny::req(input$rts2_sigmaGL2)
+  shiny::req(input$rts2_k)
 
-  N <- input$N
-  k <- input$k
-  sg1 <- input$sg1
-  sigmaG2 <- input$sigmaG2
-  sigmaGL2 <- input$sigmaGL2
-  sigmaE2 <- input$sigmaE2
+  N <- input$rts2_N
+  k <- input$rts2_k
+  sg1 <- input$rts2_sg1
+  sigmaG2 <- input$rts2_sigmaG2
+  sigmaGL2 <- input$rts2_sigmaGL2
+  sigmaE2 <- input$rts2_sigmaE2
 
   r <- seq(1, floor(N / sg1 / k), 1)
   g <- floor(N / k / r)
@@ -64,26 +64,26 @@ output$rtsplot2 <- shiny::renderPlot( {
 
 rts3_sv <- function(input, output, session, values){
   output$rtsplot3 <- shiny::renderPlot( {
-    shiny::req(input$N)
-    shiny::req(input$sg1)
-    shiny::req(input$sigmaG2)
-    shiny::req(input$sigmaE2)
-    shiny::req(input$sigmaGL2)
-    shiny::req(input$k)
-    shiny::req(input$q)
-    shiny::req(input$sigmaGY2)
-    shiny::req(input$sigmaGLY2)
-    shiny::req(input$sigmaE2)
+    shiny::req(input$rts3_N)
+    shiny::req(input$rts3_sg1)
+    shiny::req(input$rts3_sigmaG2)
+    shiny::req(input$rts3_sigmaE2)
+    shiny::req(input$rts3_sigmaGL2)
+    shiny::req(input$rts3_k)
+    shiny::req(input$rts3_q)
+    shiny::req(input$rts3_sigmaGY2)
+    shiny::req(input$rts3_sigmaGLY2)
+    shiny::req(input$rts3_sigmaE2)
 
-    N <- input$N
-    k <- input$k
-    q <- input$q
-    sg1 <- input$sg1
-    sigmaG2 <- input$sigmaG2
-    sigmaGL2 <- input$sigmaGL2
-    sigmaGY2 <- input$sigmaGY2
-    sigmaGLY2 <- input$sigmaGLY2
-    sigmaE2 <- input$sigmaE2
+    N <- input$rts3_N
+    k <- input$rts3_k
+    q <- input$rts3_q
+    sg1 <- input$rts3_sg1
+    sigmaG2 <- input$rts3_sigmaG2
+    sigmaGL2 <- input$rts3_sigmaGL2
+    sigmaGY2 <- input$rts3_sigmaGY2
+    sigmaGLY2 <- input$rts3_sigmaGLY2
+    sigmaE2 <- input$rts3_sigmaE2
 
     r <- seq(1, floor(N / sg1 / k / q), 1)
     g <- floor(N / k / q / r)
