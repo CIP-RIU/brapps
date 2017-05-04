@@ -48,26 +48,7 @@
 # }
 #
 
-# get_os <- function(){
-#   sysinf <- Sys.info()
-#   if (!is.null(sysinf)){
-#     os <- sysinf['sysname']
-#     if (os == 'Darwin')
-#       os <- "osx"
-#   } else { ## mystery machine
-#     os <- .Platform$OS.type
-#     if (grepl("^darwin", R.version$os))
-#       os <- "osx"
-#     if (grepl("linux-gnu", R.version$os))
-#       os <- "linux"
-#   }
-#   tolower(os)
-# }
-#
-# is_server <- function() {
-#   #if(!(get_os() %in% c("windows", "osx"))) return(TRUE)
-#   return(TRUE)
-# }
+
 
 
 
@@ -120,11 +101,11 @@ fieldbook_analysis <- function(input, output, session, values){
                    inline = TRUE)
         ,
         conditionalPanel(
-          condition = "input.fba_src_type == 'Local'",
-
-          shinyFiles::shinyFilesButton('fb_Input',
-                           label = 'File select',
-                           title = 'Please select a file', multiple = FALSE)
+          condition = "input.fba_src_type == 'Local'"
+          # ,
+          # shinyFiles::shinyFilesButton('fb_Input',
+          #                  label = 'File select',
+          #                  title = 'Please select a file', multiple = FALSE)
         ),
 
         conditionalPanel(
@@ -198,16 +179,16 @@ fieldbook_analysis <- function(input, output, session, values){
       req(aFilePath)
       req(input$fbaInput)
       fbId = input$fbaInput
-      if(input$fba_src_type == "Local"){
-        fbIdf = parseFilePaths(vols, input$fb_Input)
-        #print(fbIdf)
-        if(nrow(fbIdf) != 0){
-          fbn = fbIdf$name[1] %>% as.character
-          fbp = fbIdf$datapath[1] %>% as.character
-          fbId = fbp[[1]][1]
-          updateSelectInput(session, "fbaInput", fbId, fbId)
-        } else  fbId = NULL
-      }
+      # if(input$fba_src_type == "Local"){
+      #   fbIdf = parseFilePaths(vols, input$fb_Input)
+      #   #print(fbIdf)
+      #   if(nrow(fbIdf) != 0){
+      #     fbn = fbIdf$name[1] %>% as.character
+      #     fbp = fbIdf$datapath[1] %>% as.character
+      #     fbId = fbp[[1]][1]
+      #     updateSelectInput(session, "fbaInput", fbId, fbId)
+      #   } else  fbId = NULL
+      # }
       fbId
     })
 
