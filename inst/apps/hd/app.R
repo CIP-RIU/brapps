@@ -24,8 +24,9 @@ ui <- dashboardPage(skin = "yellow",
       dashboardBody(
         tabItems(
           brapps::rts_ui("selResponse"),
-          brapps::fbasingle_ui("singleChart"),
-          brapps::locations_ui("mapLocation")
+          brapps::fbasingle_ui("singleChart")
+          ,
+          brapps::locations_ui("mapLocation", "Geographic overview")
         )
 
       )

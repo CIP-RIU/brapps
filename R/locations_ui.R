@@ -18,56 +18,57 @@ locations_ui <- function(id = "mapLocation", title = "Locations UI"){
                              HTML("This module provides a geographic summary of the breeding program(s) in the selected database.
                                   ")
                     ),
-                    tabPanel("Source",
+                    tabPanel("Source", value = "map_source",
                              fluidRow(
                                column(width = 3,
                                       shiny::uiOutput("ui_map_src_type")
                                ),
                                column(width = 3,
                                       shiny::uiOutput("ui_map_src_filter")
-                               ),
-                               column(width = 6,
-                                      shiny::uiOutput("ui_map_src_fieldbook")
                                )
+                               # ,
+                               # column(width = 6,
+                               #        shiny::uiOutput("ui_map_src_fieldbook")
+                               # )
                              )
                     ),
                     tabPanel("Map",
-                             shiny::radioButtons("ui_map_track", "Choose what to display or track",
+                             shiny::radioButtons("ui_map_track", "Choose what to display",
                                                  choices = c("studies", "locations", "seasons" #, "genotypes"
                                                              ),
                                                  inline = TRUE),
                              leaflet::leafletOutput("mapLocs")
                     )
-                    ,
-                    tabPanel("List of studies",
-
-                             HTML("<h1>Under development!</h1>")
-                    )
+                    # ,
+                    # tabPanel("List of studies",
+                    #
+                    #          HTML("<h1>Under development!</h1>")
+                    # )
              )
       )
-      # ,
-      # column(width = 4,
-      #        tabBox(width = NULL, title = "Site"
-      #               ,
-      #               tabPanel("Histogram",
-      #                        plotOutput("histogram")
-      #               )
-      #               ,
-      #               tabPanel("Info",
-      #                        htmlOutput("siteInfo")
-      #               )
-      #               ,
-      #               tabPanel("Fieldtrials",
-      #                        htmlOutput("site_fieldtrials")
-      #               )
-      #               # TODOD
-      #               ,
-      #               tabPanel("Genotypes",
-      #                        htmlOutput("site_genotypes")
-      #               )
-      #
-      #        )
-      # )
+      ,
+      column(width = 4,
+             tabBox(width = NULL, title = "Site"
+                    ,
+                    tabPanel("Histogram",
+                             plotOutput("histogram")
+                    )
+                    ,
+                    tabPanel("Info",
+                             htmlOutput("siteInfo")
+                    )
+                    # ,
+                    # tabPanel("Fieldtrials",
+                    #          htmlOutput("site_fieldtrials")
+                    # )
+                    # # TODOD
+                    # ,
+                    # tabPanel("Genotypes",
+                    #          htmlOutput("site_genotypes")
+                    # )
+
+             )
+      )
     )
     # ,
     #

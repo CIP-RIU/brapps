@@ -48,6 +48,28 @@
 # }
 #
 
+# get_os <- function(){
+#   sysinf <- Sys.info()
+#   if (!is.null(sysinf)){
+#     os <- sysinf['sysname']
+#     if (os == 'Darwin')
+#       os <- "osx"
+#   } else { ## mystery machine
+#     os <- .Platform$OS.type
+#     if (grepl("^darwin", R.version$os))
+#       os <- "osx"
+#     if (grepl("linux-gnu", R.version$os))
+#       os <- "linux"
+#   }
+#   tolower(os)
+# }
+#
+# is_server <- function() {
+#   #if(!(get_os() %in% c("windows", "osx"))) return(TRUE)
+#   return(TRUE)
+# }
+
+
 
 #' fieldbook_analysis
 #'
@@ -68,13 +90,13 @@
 # @return data.frame
 #' @export
 fieldbook_analysis <- function(input, output, session, values){
-  crop = isolate(values$crop)
-  amode = isolate(values$amode)
+  # crop = isolate(values$crop)
+  # amode = isolate(values$amode)
 
   aFilePath = reactive({!is.null(input$fbaInput) | !is.null(input$filepath)})
 
   vols <- getVolumes(c("(E:)", "Page File (F:)"))
-  shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes = c('', 'xls', 'xlsx'))
+  shinyFiles::shinyFileChoose(input, 'fb_Input', roots = vols , session = session, filetypes = c('', 'xls', 'xlsx'))
 
 
   output$ui_src_type <- shiny::renderUI({
@@ -83,23 +105,26 @@ fieldbook_analysis <- function(input, output, session, values){
     ndb <- names(bdb)
     ndb <- ndb[!ndb %in% c("mockbase", "ricebase")]
     ndb <- ndb[stringr::str_detect(ndb, "base")]
-
+    #out <- NULL
+    #print(paste("X", is_server()))
     if (!is_server()) {
+      #print("chck")
       out <- shiny::tagList(
         radioButtons("fba_src_type", "Select a source type",
-                   list("Default" = "Default"
-                        ,
-                        "Database (using BrAPI)" = "Brapi"
+                    list(
+                      "Database (using BrAPI)" = "Brapi",
+                      "Default" = "Default"
                         ,"File" = "Local"
                    ),
-                   "Default",
-                   inline = TRUE),
+                   "Brapi",
+                   inline = TRUE)
+        ,
         conditionalPanel(
           condition = "input.fba_src_type == 'Local'",
 
-          shinyFilesButton('fb_Input',
+          shinyFiles::shinyFilesButton('fb_Input',
                            label = 'File select',
-                           title = 'Please select a file', multiple=FALSE)
+                           title = 'Please select a file', multiple = FALSE)
         ),
 
         conditionalPanel(
@@ -112,6 +137,9 @@ fieldbook_analysis <- function(input, output, session, values){
     } else {
       out <- shiny::selectInput("baui_bdb", "BrAPI database", ndb)
     }
+    #out
+    #print(class(out))
+    #print(str(out))
     return(out)
   })
 

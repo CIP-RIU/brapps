@@ -94,7 +94,7 @@ fbasingle_ui <- function(title="") {
                          The online backend server has a time-limit resulting in a message \"Disconnected from server\" after some time of inactivity. Just \"reload or refresh the page\".
                          ")
                   ),
-                  tabPanel("Source",
+                  tabPanel("Source data",
                    fluidRow(
                      column(width = 3,
                             shiny::uiOutput("ui_src_type")

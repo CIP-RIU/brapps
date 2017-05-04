@@ -100,24 +100,24 @@ locations <- function(input, output, session, values) {
     return(out)
   })
 
-  output$ui_src_filter <- shiny::renderUI({
+  output$ui_map_src_filter <- shiny::renderUI({
 
-      out <- tagList(
+      out <- shiny::tagList(
         shiny::checkboxInput("map_chk_prg", "Use Breeding Programs as filter", value = FALSE),
         shiny::uiOutput("map_prgs")
       )
 
-    return(out)
+    #return(out)
   })
 
-  output$ui_map_src_fieldbook <- shiny::renderUI({
-
-    out <- shiny::tagList(
-      shiny::uiOutput("map_stds")
-    )
-
-    return(out)
-  })
+  # output$ui_map_src_fieldbook <- shiny::renderUI({
+  #
+  #   out <- shiny::tagList(
+  #     shiny::uiOutput("map_stds")
+  #   )
+  #
+  #   return(out)
+  # })
 
 
 
@@ -130,10 +130,14 @@ locations <- function(input, output, session, values) {
   })
 
   map_dat <- reactive({
-    out <- shiny::withProgress(message = "Loading", detail = "locations", {
-      brapi::ba_locations(map_con())
-    })
-
+    #out <- NULL
+    #out <- tryCatch(
+    out <-  shiny::withProgress(message = "Loading", detail = "locations", {
+        brapi::ba_locations(map_con())
+      })
+    # ,
+    #   error = function(e) return(NULL)
+    # )
     out$latitude <- as.numeric(out$latitude)
     out$longitude <- as.numeric(out$longitude)
 
@@ -145,55 +149,62 @@ locations <- function(input, output, session, values) {
     #req(input$tableLocs)
     #req(input$tableLocs)
     #req(input$ui_map_track)
+    # validate(need(
+    #   (is.data.frame(map_dat())), "Location data not available."
+    # ))
     out <- map_dat()
+
+
     out = out[!is.na(out$latitude),]
     stds <- NULL
-    if (input$ui_map_track %in% c("studies", "seasons", "genotypes")) {
+    #if (input$ui_map_track %in% c("studies", "seasons", "genotypes")) {
       stds <- shiny::withProgress(message = "Loading", detail = "studies", {
         brapi::ba_studies_search(map_con())
       })
-    }
+
+      out <- merge(out, stds, by = "locationDbId")
+    #}
+
+      #print(head(out))
+
+      if (input$map_chk_prg) {
+        out <- out[out$programDbId == input$map_progrs, ]
+      }
+
+      #print(head(out))
+
 
     if (input$ui_map_track == "studies") {
-      out <- merge(out, stds, by = "locationDbId")
+
       out <- cbind(out, popupDetail = out$studyName)
     }
     if (input$ui_map_track == "locations") {
+      out <- out[!duplicated(out$locationDbId), ]
       out <- cbind(out, popupDetail = out$name)
     }
     if (input$ui_map_track == "seasons") {
-      out <- merge(out, stds, by = "locationDbId")
+     # out <- merge(out, stds, by = "locationDbId")
       out <- cbind(out, popupDetail = paste(out$name, out$seasons, sep = ": "))
       out <- out[!duplicated(out$popupDetail), ]
     }
-    if (input$ui_map_track == "genotypes") {
-      # get list of study details to compile helper table with studyDbId, studyName, seasons, germplasmName
-      n = nrow(stds)
-      sgeno <- tibble::as.tibble(cbind(germplasmName = "", seasons = "", studyDbId = "", studyName = ""), stringsAsFactors = FALSE)[-c(1), ]
-      shiny::withProgress(message = "Loading", detail = "studies", {
-      # for(i in 1:n) {
-      #   sdet <- NULL
-      #   try({
-      #     #sdet <- brapi::ba_studies_details(map_con(), stds$studyDbId[i])
-      #     sdet <- brapi::ba_studies_layout(con, as.character(stds$studyDbId[i]))
-      #   })
-      #   if (!is.null(sdet) & is.data.frame(sdet) & nrow(sdet) > 0) {
-      #     geno <- sdet[!duplicated(sdet$germplasmName), "germplasmName"]
-      #     geno <- cbind(geno,
-      #                   seasons = rep(stds$seasons[i], nrow(geno)),
-      #                   studyDbId = rep(as.character(stds$studyDbId[i]), nrow(geno)),
-      #                   studyName = rep(as.character(stds$studyName[i]), nrow(geno))
-      #             )
-      #     sgeno <- rbind(sgeno, geno)
-      #   }
-      # }
-      #
-      # out <- merge(out, sgeno)
-      # out <- cbind(out, popupDetail = paste(out$germplasmName, name, season, studyName, sep = ": "))
-      })
-    }
 
     out
+  })
+
+  data_prg <- shiny::reactive({
+    shiny::withProgress(message = "Connecting", detail = "Loading programs",{
+      brapi::ba_programs(map_con())
+    })
+  })
+
+  output$map_prgs <- shiny::renderUI({
+    shiny::req(input$map_chk_prg)
+    if (input$map_chk_prg) {
+      prg <- as.list(data_prg()$programDbId)
+      names(prg) <- data_prg()$name
+      shiny::selectInput("map_progrs", "Breeding programs", choices = prg,
+                         selected = prg[1])
+    }
   })
 
 
