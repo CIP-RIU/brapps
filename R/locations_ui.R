@@ -15,19 +15,34 @@ locations_ui <- function(id = "mapLocation", title = "Locations UI"){
              ,
              shinydashboard::tabBox(width = NULL, id = id,
                     tabPanel("About",
-                             HTML("")
+                             HTML("This module provides a geographic summary of the breeding program(s) in the selected database.
+                                  ")
                     ),
                     tabPanel("Source",
-                             HTML("")
+                             fluidRow(
+                               column(width = 3,
+                                      shiny::uiOutput("ui_map_src_type")
+                               ),
+                               column(width = 3,
+                                      shiny::uiOutput("ui_map_src_filter")
+                               ),
+                               column(width = 6,
+                                      shiny::uiOutput("ui_map_src_fieldbook")
+                               )
+                             )
                     ),
                     tabPanel("Map",
+                             shiny::radioButtons("ui_map_track", "Choose what to display or track",
+                                                 choices = c("studies", "locations", "seasons" #, "genotypes"
+                                                             ),
+                                                 inline = TRUE),
                              leaflet::leafletOutput("mapLocs")
                     )
-                    # ,
-                    # tabPanel("Report",
-                    #          htmlOutput("rep_loc")
-                    #          #HTML("<h1>Under development!</h1>")
-                    # )
+                    ,
+                    tabPanel("List of studies",
+
+                             HTML("<h1>Under development!</h1>")
+                    )
              )
       )
       # ,

@@ -87,45 +87,123 @@ locations <- function(input, output, session, values) {
   #
   #
 
-  dat <- function() {
+  output$ui_map_src_type <- shiny::renderUI({
+    bdb <- brapi::ba_db()
 
-    out <- shiny::withProgress(message = "Loading locations",{
-      con <- brapi::ba_db()$sweetpotatobase
-      brapi::ba_locations(con)
+    ndb <- names(bdb)
+    ndb <- ndb[!ndb %in% c("mockbase", "ricebase")]
+    ndb <- ndb[stringr::str_detect(ndb, "base")]
+
+
+    out <- shiny::selectInput("map_bdb", "BrAPI database", ndb)
+
+    return(out)
+  })
+
+  output$ui_src_filter <- shiny::renderUI({
+
+      out <- tagList(
+        shiny::checkboxInput("map_chk_prg", "Use Breeding Programs as filter", value = FALSE),
+        shiny::uiOutput("map_prgs")
+      )
+
+    return(out)
+  })
+
+  output$ui_map_src_fieldbook <- shiny::renderUI({
+
+    out <- shiny::tagList(
+      shiny::uiOutput("map_stds")
+    )
+
+    return(out)
+  })
+
+
+
+  map_con <- reactive({
+    req(input$map_bdb)
+    con <- shiny::withProgress(message = "Connecting to database", {
+      brapi::ba_db()[[input$map_bdb]]
+    })
+    con
+  })
+
+  map_dat <- reactive({
+    out <- shiny::withProgress(message = "Loading", detail = "locations", {
+      brapi::ba_locations(map_con())
     })
 
     out$latitude <- as.numeric(out$latitude)
     out$longitude <- as.numeric(out$longitude)
-    out = out[!is.na(out$latitude),]
-    stds <- brapi::ba_studies_search(con)
-    out <- merge(out, stds, by="locationDbId")
+
     out
-  }
+  })
 
 
-  # dat_sel <- reactive({
-  #   #req(input$tableLocs)
-  #   #req(input$tableLocs)
-  #   #if (is.null(dat()))
-  #     # return_null_with_msg(
-  #     #   "Could not retrieve data from database. Check your login details and internet connection."
-  #     # )
-  #   # sel = input$tableLocs_rows_all
-  #   # if (is.null(sel)) {
-  #     pts = dat()
-  #   # } else {
-  #   #   pts = dat()[sel,]
-  #   # }
-  #
-  #   pts
-  # })
+  map_dat_sel <- reactive({
+    #req(input$tableLocs)
+    #req(input$tableLocs)
+    #req(input$ui_map_track)
+    out <- map_dat()
+    out = out[!is.na(out$latitude),]
+    stds <- NULL
+    if (input$ui_map_track %in% c("studies", "seasons", "genotypes")) {
+      stds <- shiny::withProgress(message = "Loading", detail = "studies", {
+        brapi::ba_studies_search(map_con())
+      })
+    }
+
+    if (input$ui_map_track == "studies") {
+      out <- merge(out, stds, by = "locationDbId")
+      out <- cbind(out, popupDetail = out$studyName)
+    }
+    if (input$ui_map_track == "locations") {
+      out <- cbind(out, popupDetail = out$name)
+    }
+    if (input$ui_map_track == "seasons") {
+      out <- merge(out, stds, by = "locationDbId")
+      out <- cbind(out, popupDetail = paste(out$name, out$seasons, sep = ": "))
+      out <- out[!duplicated(out$popupDetail), ]
+    }
+    if (input$ui_map_track == "genotypes") {
+      # get list of study details to compile helper table with studyDbId, studyName, seasons, germplasmName
+      n = nrow(stds)
+      sgeno <- tibble::as.tibble(cbind(germplasmName = "", seasons = "", studyDbId = "", studyName = ""), stringsAsFactors = FALSE)[-c(1), ]
+      shiny::withProgress(message = "Loading", detail = "studies", {
+      # for(i in 1:n) {
+      #   sdet <- NULL
+      #   try({
+      #     #sdet <- brapi::ba_studies_details(map_con(), stds$studyDbId[i])
+      #     sdet <- brapi::ba_studies_layout(con, as.character(stds$studyDbId[i]))
+      #   })
+      #   if (!is.null(sdet) & is.data.frame(sdet) & nrow(sdet) > 0) {
+      #     geno <- sdet[!duplicated(sdet$germplasmName), "germplasmName"]
+      #     geno <- cbind(geno,
+      #                   seasons = rep(stds$seasons[i], nrow(geno)),
+      #                   studyDbId = rep(as.character(stds$studyDbId[i]), nrow(geno)),
+      #                   studyName = rep(as.character(stds$studyName[i]), nrow(geno))
+      #             )
+      #     sgeno <- rbind(sgeno, geno)
+      #   }
+      # }
+      #
+      # out <- merge(out, sgeno)
+      # out <- cbind(out, popupDetail = paste(out$germplasmName, name, season, studyName, sep = ": "))
+      })
+    }
+
+    out
+  })
+
+
   #
   # output$tableLocs <- DT::renderDataTable(dat()
   #                                         , server = FALSE,
   #                                         options = list(scrollX = TRUE))
 
   output$mapLocs <- leaflet::renderLeaflet({
-    pts <- dat()
+    pts <- map_dat_sel()
     validate(
       need(is.data.frame(pts), "Need a location table."),
       need(is.numeric(pts$longitude), "Need numeric longitude data."),
@@ -143,14 +221,15 @@ locations <- function(input, output, session, values) {
     leaflet::leaflet(pts, height = "100%") %>%
       leaflet::addTiles() %>%
       leaflet::addAwesomeMarkers(~longitude, ~latitude,
-                                   popup = ~htmltools::htmlEscape(studyName),
+                                   popup = ~htmltools::htmlEscape(popupDetail),
                     clusterOptions = leaflet::markerClusterOptions(clickable = T)) %>%
       leaflet::fitBounds(
         ~ min(pts$longitude),
         ~ min(pts$latitude),
         ~ max(pts$longitude),
         ~ max(pts$latitude)
-      )
+      ) %>%
+      leaflet::addMiniMap()
 
 
   })
