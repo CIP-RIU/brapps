@@ -674,6 +674,21 @@ output$phHeat_output = d3heatmap::renderD3heatmap({
     plot(dend, horiz = TRUE)
   })
 
+
+  output$phNet_output = shiny::renderPlot({
+    req(input$fba_set_trt)
+    validate(
+      need(length(input$fba_set_trt) > 2, "Need at least three traits.")
+    )
+    #DF = get_ph_corr()
+    DF <- fbInput()
+    DF <- DF[, input$fba_set_trt]
+    validate_table(DF)
+
+    par(mar=c(3,1,1,10))
+    DF <- corrr::correlate(DF)
+    corrr::network_plot(DF)
+  })
 output$phDens_output = renderPlot({
   #req(input$fba_set_trt)
   #req(input$phDens)

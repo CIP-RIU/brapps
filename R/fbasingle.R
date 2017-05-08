@@ -30,6 +30,10 @@ visuals <- function(){
                   tabPanel("Dendrogram Phenotypes",
                            p("Mark at least two traits above."),
                            plotOutput('phDend_output', height = 1400)
+                  ),
+                  tabPanel("Trait Network",
+                           p("Mark at least three traits above."),
+                           plotOutput('phNet_output', height = 1400)
                   )
                   #,
                   #

@@ -50,13 +50,15 @@ locations_ui <- function(id = "mapLocation", title = "Locations UI"){
       column(width = 4,
              tabBox(width = NULL, title = "Site"
                     ,
-                    tabPanel("Histogram",
-                             plotOutput("histogram")
-                    )
-                    ,
+
                     tabPanel("Info",
                              htmlOutput("siteInfo")
                     )
+                    ,
+                    tabPanel("Altitude",
+                             plotOutput("hist_alt")
+                    )
+
                     # ,
                     # tabPanel("Fieldtrials",
                     #          htmlOutput("site_fieldtrials")

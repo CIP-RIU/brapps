@@ -17,7 +17,7 @@ locations <- function(input, output, session, values) {
   #is_server = isolate(values$is_server)
   #mode = isolate(values$mode)
 
-  # msg_no_loc = "No location selected."
+  msg_no_loc = "No location selected."
   #
   # url = system.file("images", package = "brapps")
   # greenLeafIcon <- leaflet::makeIcon(
@@ -254,53 +254,53 @@ locations <- function(input, output, session, values) {
   # )
   #
   #
-  # mrks <- reactive({
-  #   x = input$mapLocs_marker_click
-  #   subset(
-  #     dat_sel(),
-  #     dat_sel()$latitude == as.numeric(x$lat) &
-  #       dat_sel()$longitude == as.numeric(x$lng)
-  #   )
-  # })
+  mrks <- reactive({
+    x = input$mapLocs_marker_click
+    subset(
+      map_dat_sel(),
+        map_dat_sel()$latitude == as.numeric(x$lat) &
+        map_dat_sel()$longitude == as.numeric(x$lng)
+    )
+  })
   #
-  # output$histogram <- renderPlot({
-  #   graphics::hist(dat()$altitude,
-  #                  main = "Frequency of altitude of breeding locations.",
-  #                  xlab = "altitude [m]",
-  #                  sub = "Selected location frequencies are in red.")
-  #   graphics::hist(dat_sel()$altitude, add = T, col = "red")
-  #   if (length(mrks()) > 0) {
-  #     graphics::abline(v = mrks()$altitude,
-  #                      col = "blue",
-  #                      lwd = 5)
-  #   }
-  # })
+  output$hist_alt <- renderPlot({
+    graphics::hist(map_dat()$altitude,
+                   main = "Frequency of altitude of breeding locations.",
+                   xlab = "altitude [m]",
+                   sub = "Selected location frequencies are in red.")
+    graphics::hist(map_dat_sel()$altitude, add = T, col = "red")
+    if (length(mrks()) > 0) {
+      graphics::abline(v = mrks()$altitude,
+                       col = "blue",
+                       lwd = 5)
+    }
+  })
   #
   # ##################################
   #
-  # rec2info <- function(rec) {
-  #   #rec %>% as.data.frame
-  #   nms = names(rec)
-  #   dat = t(rec)
-  #   dat = cbind(nms, dat)
-  #   #rint(str(dat))
-  #   # print(nrow(dat))
-  #   row.names(dat) = 1:nrow(dat)
-  #   colnames(dat) = c("Attribute", "Value")
-  #   dat = dat[c(1, 5, 9, 4, 3, 2, 6, 7, 8, 10, 12, 13, 14, 11),]
-  #   x = htmlTable::htmlTable(dat)
-  #   paste0("<center>", x, "</center>") %>% HTML
-  # }
+  rec2info <- function(rec) {
+    #rec %>% as.data.frame
+    nms = names(rec)
+    dat = t(rec)
+    dat = cbind(nms, dat)
+    # print(str(dat))
+    # print(nrow(dat))
+    row.names(dat) = 1:nrow(dat)
+    colnames(dat) = c("Attribute", "Value")
+    dat = dat[c(1, 5, 9, 4, 3, 2, 6, 7, 8, 10, 12, 13, 14, 11),]
+    x = htmlTable::htmlTable(dat)
+    paste0("<center>", x, "</center>") %>% HTML
+  }
   #
-  # output$siteInfo <- renderUI({
-  #   out = msg_no_loc
-  #   rec = mrks()
-  #   if (nrow(rec) == 1) {
-  #     out = rec2info(rec)
-  #   }
-  #
-  #   HTML(out)
-  # })
+  output$siteInfo <- renderUI({
+    out = msg_no_loc
+    rec = mrks()[1, ]
+    if (nrow(rec) == 1) {
+      out = rec2info(rec)
+    }
+
+    HTML(out)
+  })
   #
   #
   # observeEvent(input$setLocsToEnv, {
@@ -614,13 +614,19 @@ locations <- function(input, output, session, values) {
   #   click <- input$mapLocs_marker_click
   #   clat <- click$lat
   #   clng <- click$lng
-  #   leaflet::leafletProxy('mapLocs') %>% # use the proxy to save computation
-  #     leaflet::addMarkers(
-  #       lng = clng,
-  #       lat = clat,
-  #       layerId = "marked",
-  #       icon = greenLeafIcon
-  #     )
+  #
+  #   output$siteInfo <- renderText({
+  #     HTML(clat)
+  #     HTML(clng)
+  #   })
+  #
+  #   # leaflet::leafletProxy('mapLocs') %>% # use the proxy to save computation
+  #   #   leaflet::addMarkers(
+  #   #     lng = clng,
+  #   #     lat = clat,
+  #   #     layerId = "marked",
+  #   #     icon = greenLeafIcon
+  #   #   )
   #
   # })
   #
