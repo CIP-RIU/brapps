@@ -133,13 +133,18 @@ locations <- function(input, output, session, values) {
     #out <- NULL
     #out <- tryCatch(
     out <-  shiny::withProgress(message = "Loading", detail = "locations", {
-        brapi::ba_locations(map_con())
+        brapi::ba_locations(map_con(), pageSize = 1000)
       })
     # ,
     #   error = function(e) return(NULL)
     # )
     out$latitude <- as.numeric(out$latitude)
     out$longitude <- as.numeric(out$longitude)
+
+    out <- shiny::withProgress(message = "Annotating", detail = "locations", {
+      out <- add_TmeanPTotal(out)
+    })
+
 
     out
   })
@@ -303,6 +308,21 @@ locations <- function(input, output, session, values) {
 
     HTML(out)
   })
+
+
+  output$chart_env <- renderPlot({
+    if (input$ui_map_track != "locations") return(NULL)
+    chart_envelope(map_dat())
+    if (length(mrks()) > 0) {
+      graphics::points(x = mrks()$annualMeanTemperature,
+                       y = mrks()$annualTotalRainfall,
+                       col = "blue",
+                       bg = "blue",
+                       type = "p",
+                       pch = 21)
+    }
+  })
+
   #
   #
   # observeEvent(input$setLocsToEnv, {

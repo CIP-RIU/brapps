@@ -1,3 +1,8 @@
+climSource <- function() {
+  HTML("Data source for the the average annual Temperature and
+                                  annual total rainfall are interpolated data from WorldClim.")
+}
+
 
 #' locations_ui
 #'
@@ -34,7 +39,7 @@ locations_ui <- function(id = "mapLocation", title = "Locations UI"){
                     ),
                     tabPanel("Map",
                              shiny::radioButtons("ui_map_track", "Choose what to display",
-                                                 choices = c("studies", "locations", "seasons" #, "genotypes"
+                                                 choices = c("locations", "studies", "seasons" #, "genotypes"
                                                              ),
                                                  inline = TRUE),
                              leaflet::leafletOutput("mapLocs")
@@ -52,13 +57,18 @@ locations_ui <- function(id = "mapLocation", title = "Locations UI"){
                     ,
 
                     tabPanel("Site Info",
+                             climSource(),
                              htmlOutput("siteInfo")
                     )
                     ,
                     tabPanel("Site Altitude",
                              plotOutput("hist_alt")
                     )
-
+                    ,
+                    tabPanel("Site Envelope",
+                             climSource(),
+                             plotOutput("chart_env")
+                    )
                     # ,
                     # tabPanel("Fieldtrials",
                     #          htmlOutput("site_fieldtrials")
