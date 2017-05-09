@@ -4,10 +4,8 @@ visuals <- function(){
     column(width = 12,
            shinydashboard::tabBox(width = NULL, #selected = "Map",
                   id = "tabAnalysis",
-                  tabPanel("Correlation",
-                           p("Mark at least two traits above."),
-                           qtlcharts::iplotCorr_output('vcor_output', height = 900)
-                           #)
+                  tabPanel("Density",
+                           plotOutput('phDens_output', height = 400)
                   )
                   ,
                   tabPanel("Spatial Map",
@@ -15,10 +13,14 @@ visuals <- function(){
                            uiOutput("fieldbook_heatmap_ui")
                   )
                   ,
-                  tabPanel("Density",
-                           plotOutput('phDens_output', height = 400)
+                  tabPanel("Correlation",
+                           p("Mark at least two traits above."),
+                           qtlcharts::iplotCorr_output('vcor_output', height = 900)
+                           #)
                   )
                   ,
+
+
 
                   #
                   tabPanel("Heatmap Genotype x Trait",
@@ -32,7 +34,7 @@ visuals <- function(){
                            plotOutput('phDend_output', height = 1400)
                   ),
                   tabPanel("Trait Network",
-                           p("Mark at least three traits above."),
+                           p("Mark at least four traits above."),
                            plotOutput('phNet_output', height = 1400)
                   )
                   #,

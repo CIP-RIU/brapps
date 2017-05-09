@@ -51,11 +51,11 @@ locations_ui <- function(id = "mapLocation", title = "Locations UI"){
              tabBox(width = NULL, title = "Site"
                     ,
 
-                    tabPanel("Info",
+                    tabPanel("Site Info",
                              htmlOutput("siteInfo")
                     )
                     ,
-                    tabPanel("Altitude",
+                    tabPanel("Site Altitude",
                              plotOutput("hist_alt")
                     )
 

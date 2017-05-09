@@ -446,6 +446,8 @@ fieldbook_analysis <- function(input, output, session, values){
     )
   }
 
+
+
   phCorr <- function(DF, trait, useMode = "dendo", maxGermplasm = 9999, filterTrait = NULL){
     req(input$fba_set_trt)
     req(input$fba_set_gen)
@@ -654,7 +656,7 @@ fieldbook_analysis <- function(input, output, session, values){
 
   output$phHeat_output_ui <- renderUI({
     req(input$fba_set_trt)
-    d3heatmapOutput("phHeat_output", height = 1400)
+    d3heatmap::d3heatmapOutput("phHeat_output", height = 1400)
   })
 
 
@@ -675,20 +677,18 @@ output$phHeat_output = d3heatmap::renderD3heatmap({
   })
 
 
-  output$phNet_output = shiny::renderPlot({
+output$phNet_output = shiny::renderPlot({
     req(input$fba_set_trt)
     validate(
-      need(length(input$fba_set_trt) > 2, "Need at least three traits.")
+      need(length(input$fba_set_trt) > 3, "Need at least four traits.")
     )
-    #DF = get_ph_corr()
-    DF <- fbInput()
-    DF <- DF[, input$fba_set_trt]
-    validate_table(DF)
+    DF = get_ph_corr()
 
     par(mar=c(3,1,1,10))
     DF <- corrr::correlate(DF)
-    corrr::network_plot(DF)
-  })
+    corrr::network_plot(DF, legend = TRUE, min_cor = 0.2, colors = c("skyblue1", "white", "indianred2"))
+})
+
 output$phDens_output = renderPlot({
   #req(input$fba_set_trt)
   #req(input$phDens)

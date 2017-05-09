@@ -264,6 +264,7 @@ locations <- function(input, output, session, values) {
   })
   #
   output$hist_alt <- renderPlot({
+    if(input$ui_map_track != "locations") return(NULL)
     graphics::hist(map_dat()$altitude,
                    main = "Frequency of altitude of breeding locations.",
                    xlab = "altitude [m]",
@@ -293,6 +294,7 @@ locations <- function(input, output, session, values) {
   }
   #
   output$siteInfo <- renderUI({
+    if(input$ui_map_track != "locations") return(NULL)
     out = msg_no_loc
     rec = mrks()[1, ]
     if (nrow(rec) == 1) {
