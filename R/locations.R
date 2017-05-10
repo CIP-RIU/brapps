@@ -164,7 +164,7 @@ locations <- function(input, output, session, values) {
     stds <- NULL
     #if (input$ui_map_track %in% c("studies", "seasons", "genotypes")) {
       stds <- shiny::withProgress(message = "Loading", detail = "studies", {
-        brapi::ba_studies_search(map_con())
+        brapi::ba_studies_search(map_con(), pageSize = 10000)
       })
 
       out <- merge(out, stds, by = "locationDbId")
@@ -198,7 +198,7 @@ locations <- function(input, output, session, values) {
 
   data_prg <- shiny::reactive({
     shiny::withProgress(message = "Connecting", detail = "Loading programs",{
-      brapi::ba_programs(map_con())
+      brapi::ba_programs(map_con(), pageSize = 1000)
     })
   })
 
@@ -322,6 +322,11 @@ locations <- function(input, output, session, values) {
                        pch = 21)
     }
   })
+
+
+  # observeEvent(input$btn_demo_locs,
+  #              rintrojs::introjs(session))
+
 
   #
   #

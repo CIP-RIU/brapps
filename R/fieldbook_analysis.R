@@ -201,14 +201,14 @@ fieldbook_analysis <- function(input, output, session, values){
 
     data_prg <- shiny::reactive({
       shiny::withProgress(message = "Connecting", detail = "Loading programs",{
-        brapi::ba_programs(con())
+        brapi::ba_programs(con(), pageSize = 1000)
       })
     })
 
     data_std <- shiny::reactive({
       #req(input$progrs)
       shiny::withProgress(message = "Connecting", detail = "Loading studies",  {
-        std <- brapi::ba_studies_search(con())
+        std <- brapi::ba_studies_search(con(), pageSize = 10000)
         if (input$baui_chk_prg) {
           std <- std[std$programDbId == input$progrs, ]
         }

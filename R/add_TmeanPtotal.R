@@ -17,5 +17,8 @@ add_TmeanPTotal <- function(locs) {
 }
 
 chart_envelope <- function(locs) {
-  plot(locs[, c("annualMeanTemperature", "annualTotalRainfall")], pch = 21, col = "red")
+  plot(locs[, c("annualMeanTemperature", "annualTotalRainfall")],
+       pch = 21, col = "red",
+       xlab = "Annual Mean Temperature [degree C]",
+       ylab = "Annual Total Rainfall [mm]")
 }
