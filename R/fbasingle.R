@@ -2,8 +2,40 @@ visuals <- function(){
 
   fluidRow(
     column(width = 12,
-           shinydashboard::tabBox(width = NULL, #selected = "Map",
+           shinydashboard::tabBox(width = 12, #selected = "Map",
                   id = "tabAnalysis",
+
+                  tabPanel("About",
+                           HTML("Use this module to visually assess your data.</br>
+                                Switch to the tab \"Source\":</br>
+                                in the online version this may take a bit as it directly activates the link to a remote database</br>
+                                via the BrAPI protocol.</br></br>
+                                The online backend server has a time-limit resulting in a message \"Disconnected from server\" after some time of inactivity. Just \"reload or refresh the page\".
+                                ")
+                           ),
+                  tabPanel("Source data",
+                           fluidRow( width = 12,
+                             column(width = 3,
+                                    shiny::uiOutput("ui_src_type")
+                             ),
+                             column(width = 3,
+                                    shiny::uiOutput("ui_src_filter")
+                             ),
+                             column(width = 6,
+                                    shiny::uiOutput("ui_src_fieldbook")
+                             )
+                           ),
+                           uiOutput("fbParams")
+
+                  ),
+                  tabPanel("Fieldbook",
+                           # conditionalPanel(
+                           #   condition = "input.fba_src_type != 'Brapi'",
+                           DT::dataTableOutput("hotFieldbook")
+                           #)
+
+                  ),
+
                   tabPanel("Density",
                            plotOutput('phDens_output', height = 400)
                   )
@@ -86,47 +118,48 @@ fbasingle_ui <- function(title="") {
 
 
   shinydashboard::tabItem(tabName = title,
-    h2("Single Chart"),
-    fluidRow(
-      column(width = 12,
-             shinydashboard::box(width = NULL, collapsible = TRUE,
-                 title = "Data",
-                 shinydashboard::tabBox("Details", width = 12,
-                  tabPanel("About",
-                    HTML("Use this module to visually assess your data.</br>
-                         Switch to the tab \"Source\":</br>
-                         in the online version this may take a bit as it directly activates the link to a remote database</br>
-                         via the BrAPI protocol.</br></br>
-                         The online backend server has a time-limit resulting in a message \"Disconnected from server\" after some time of inactivity. Just \"reload or refresh the page\".
-                         ")
-                  ),
-                  tabPanel("Source data",
-                   fluidRow(
-                     column(width = 3,
-                            shiny::uiOutput("ui_src_type")
-                            ),
-                     column(width = 3,
-                            shiny::uiOutput("ui_src_filter")
-                     ),
-                    column(width = 6,
-                           shiny::uiOutput("ui_src_fieldbook")
-                           )
-                   ),
-                   uiOutput("fbParams")
-
-                 ),
-                 tabPanel("Fieldbook",
-                          # conditionalPanel(
-                          #   condition = "input.fba_src_type != 'Brapi'",
-                            DT::dataTableOutput("hotFieldbook")
-                          #)
-
-                 )
-
-             )
-      )
-    )
-    )
-    , visuals()
+    # h2("Single Chart"),
+    # fluidRow(
+    #   column(width = 12,
+    #          shinydashboard::box(width = NULL, collapsible = TRUE,
+    #              title = "Data",
+    #              shinydashboard::tabBox("Details", width = 12,
+    #               tabPanel("About",
+    #                 HTML("Use this module to visually assess your data.</br>
+    #                      Switch to the tab \"Source\":</br>
+    #                      in the online version this may take a bit as it directly activates the link to a remote database</br>
+    #                      via the BrAPI protocol.</br></br>
+    #                      The online backend server has a time-limit resulting in a message \"Disconnected from server\" after some time of inactivity. Just \"reload or refresh the page\".
+    #                      ")
+    #               ),
+    #               tabPanel("Source data",
+    #                fluidRow(
+    #                  column(width = 3,
+    #                         shiny::uiOutput("ui_src_type")
+    #                         ),
+    #                  column(width = 3,
+    #                         shiny::uiOutput("ui_src_filter")
+    #                  ),
+    #                 column(width = 6,
+    #                        shiny::uiOutput("ui_src_fieldbook")
+    #                        )
+    #                ),
+    #                uiOutput("fbParams")
+    #
+    #              ),
+    #              tabPanel("Fieldbook",
+    #                       # conditionalPanel(
+    #                       #   condition = "input.fba_src_type != 'Brapi'",
+    #                         DT::dataTableOutput("hotFieldbook")
+    #                       #)
+    #
+    #              )
+    #
+    #          )
+    #   )
+    # )
+    # )
+    # ,
+    visuals()
   )
 }

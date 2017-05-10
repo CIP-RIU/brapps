@@ -372,20 +372,32 @@ fieldbook_analysis <- function(input, output, session, values){
       withProgress(message = "Getting trial info ...", {
         cn = colnames(fbInput()) %>% toupper()
         ep = extract_params(cn)
-        out = tagList(
+        out = #tagList(
+
           fluidRow(width = 12,
-                   column(width = 3, selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[ep$gti]) ),
-                   column(width = 3, selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[ep$bki])),
-                   column(width = 3, selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[ep$pti]) ),
-                   column(width = 3, selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[ep$rpi]) )
+                   column(width = 3,
+                          selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[ep$gti]) ,
+                          selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[ep$bki]),
+                          selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[ep$pti]),
+                          selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[ep$rpi])
+                   ),
+                   column(width = 9,
+                          selectInput("fba_set_trt", "Traits", choices = ep$tn
+                                      , selected = ep$tn[1]
+                                      , multiple = TRUE)
+                   )
+
           )
-          ,
-          fluidRow(width = 12,
-                   column(width = 12,selectInput("fba_set_trt", "Traits", choices = ep$tn
-                                                 , selected = ep$tn[1]
-                                                 , multiple = TRUE))
-          )
-        )
+          # ,
+          # fluidRow(width = 12,
+          #          column(width = 12,
+          #                 selectInput("fba_set_trt", "Traits", choices = ep$tn
+          #                             , selected = ep$tn[1]
+          #                             , multiple = TRUE)
+          #          )
+          # )
+
+        #)
       })
     out
 
@@ -394,20 +406,18 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
 
+
+
+
     output$fbParams <- renderUI({
       if( !is_server()) {
         req(input$fba_src_type)
-        out = NULL
-        if( input$fba_src_type == "Default") return(gather_params())
-        if( input$fba_src_type == "Brapi") return(gather_params())
         if( input$fba_src_type == "Local") {
           req(input$fbaInput)
           if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
         }
-      } else {
-        return(gather_params())
       }
-
+      gather_params()
     })
 
 
