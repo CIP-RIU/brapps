@@ -15,12 +15,12 @@ visuals <- function(){
                            ),
                   tabPanel("Source data",
                            fluidRow(
-                             column(width = 6,
+                             column(width = 3,
                                     shiny::uiOutput("ui_src_type"),
                                     shiny::uiOutput("ui_src_filter"),
                                     shiny::uiOutput("ui_src_fieldbook")
                              ),
-                             column(width = 6,
+                             column(width = 9,
                                     uiOutput("fbParams")
                              )
                            )

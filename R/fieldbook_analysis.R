@@ -342,8 +342,12 @@ fieldbook_analysis <- function(input, output, session, values){
       #set_fb
     })
 
-    extract_params <- function(cn) {
+    get_cn <- function() {
+      colnames(fbInput()) %>% toupper()
+    }
 
+    extract_params <- function() {
+      cn = get_cn()
       gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GEN|GERMPLASMNAME|CIPNUMBER"))[1]
       bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
       rpi= which(stringr::str_detect(cn, "REP|REPL|REPLICATION" ))[1]
@@ -370,10 +374,12 @@ fieldbook_analysis <- function(input, output, session, values){
     gather_params <- function(){
       #req(input$fbaInput)
       withProgress(message = "Getting trial info ...", {
-        cn = colnames(fbInput()) %>% toupper()
-        ep = extract_params(cn)
+        #cn = colnames(fbInput()) %>% toupper()
+        # ep = extract_params(cn)
+        cn <- get_cn()
+        ep = extract_params()
         out =
-          fluidRow(#width = 12,
+          fluidRow(width = 12,
                    column(width = 3,
                           selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[ep$gti]) ,
                           selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[ep$bki]),
@@ -390,10 +396,6 @@ fieldbook_analysis <- function(input, output, session, values){
       })
     out
     }
-
-
-
-
 
 
 
