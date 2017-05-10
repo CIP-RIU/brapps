@@ -372,9 +372,8 @@ fieldbook_analysis <- function(input, output, session, values){
       withProgress(message = "Getting trial info ...", {
         cn = colnames(fbInput()) %>% toupper()
         ep = extract_params(cn)
-        out = #tagList(
-
-          fluidRow(width = 12,
+        out =
+          fluidRow(#width = 12,
                    column(width = 3,
                           selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[ep$gti]) ,
                           selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[ep$bki]),
@@ -388,19 +387,8 @@ fieldbook_analysis <- function(input, output, session, values){
                    )
 
           )
-          # ,
-          # fluidRow(width = 12,
-          #          column(width = 12,
-          #                 selectInput("fba_set_trt", "Traits", choices = ep$tn
-          #                             , selected = ep$tn[1]
-          #                             , multiple = TRUE)
-          #          )
-          # )
-
-        #)
       })
     out
-
     }
 
 
@@ -410,8 +398,9 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     output$fbParams <- renderUI({
+      req(input$fba_src_type)
       if( !is_server()) {
-        req(input$fba_src_type)
+
         if( input$fba_src_type == "Local") {
           req(input$fbaInput)
           if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())

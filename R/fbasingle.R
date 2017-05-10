@@ -14,18 +14,16 @@ visuals <- function(){
                                 ")
                            ),
                   tabPanel("Source data",
-                           fluidRow( width = 12,
-                             column(width = 3,
-                                    shiny::uiOutput("ui_src_type")
-                             ),
-                             column(width = 3,
-                                    shiny::uiOutput("ui_src_filter")
+                           fluidRow(
+                             column(width = 6,
+                                    shiny::uiOutput("ui_src_type"),
+                                    shiny::uiOutput("ui_src_filter"),
+                                    shiny::uiOutput("ui_src_fieldbook")
                              ),
                              column(width = 6,
-                                    shiny::uiOutput("ui_src_fieldbook")
+                                    uiOutput("fbParams")
                              )
-                           ),
-                           uiOutput("fbParams")
+                           )
 
                   ),
                   tabPanel("Fieldbook",
