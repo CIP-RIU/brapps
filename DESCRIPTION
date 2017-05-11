@@ -9,7 +9,7 @@ Depends:
 Imports:
     agricolae, d3heatmap, httr, magrittr, qtlcharts, shiny,
     shinydashboard, progress,
-    DT, randomForest, htmlTable, corrr, shinytoastr,
+    DT, randomForest, htmlTable, corrr, shinytoastr, rmarkdown,
     stringr, withr, shinyFiles, fbglobal, fbmaterials, brapi, htmltools, leaflet
 Remotes:  c5sire/shinyFiles, c5sire/fbglobal, c5sire/fbmaterials, c5sire/brapi
 License: GPL-3

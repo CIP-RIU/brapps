@@ -75,31 +75,32 @@ visuals <- function(){
                            p("Mark at least four traits above."),
                            plotOutput('phNet_output', height = 1400)
                   )
-                  #,
-                  #
-                  # tabPanel(title = "Report",
-                  #
-                  #          uiOutput("aovVarsUI"),
-                  #
-                  #          radioButtons("aovFormat","Report format",
-                  #                       c("HTML", "WORD" #, "PDF"
-                  #                       ),
-                  #                       inline = TRUE),
-                  #          radioButtons("expType", "Experiment type",
-                  #                       c("RCBD", "ABD", "CRD"
-                  #                         #, "A01D"
-                  #                         ), inline = TRUE),
-                  #          conditionalPanel("input.expType == 'A01D'",
-                  #                           selectInput("block", "BLOCK", c("BLOC", "BLOCK")),
-                  #                           numericInput("k", "k", 2, 2, 5, step = 1)
-                  #          ),
-                  #
-                  #          actionButton("fbRepoDo", "Create report!"),
-                  #          HTML("<center>"),
-                  #          uiOutput("fbRep"),
-                  #          HTML("</center>")
-                  #
-                  # )
+                  ,
+
+                  tabPanel(title = "Report",
+
+                           uiOutput("aovVarsUI"),
+
+                           radioButtons("aovFormat","Report format",
+                                        c('PDF', 'HTML', 'Word'),
+                                        inline = TRUE),
+                           radioButtons("expType", "Experiment type",
+                                        c("RCBD", "ABD", "CRD"
+                                          #, "A01D"
+                                          ), inline = TRUE)
+                           ,
+                           # conditionalPanel("input.expType == 'A01D'",
+                           #                  selectInput("block", "BLOCK", c("BLOC", "BLOCK")),
+                           #                  numericInput("k", "k", 2, 2, 5, step = 1)
+                           # ),
+
+                           #actionButton("fbRepoDo", "Create report!"),
+                           HTML("<center>"),
+                           #uiOutput("fbRep"),
+                           downloadButton("fbRepo", "Download Report!"),
+                           HTML("</center>")
+
+                  )
 
            )
     )
