@@ -150,6 +150,7 @@ fieldbook_analysis <- function(input, output, session, values){
   })
 
   output$ui_src_fieldbook <- shiny::renderUI({
+    shinytoastr::toastr_info("This may take a while to auto-fill.", position = "top-center", progressBar = TRUE)
     if (!is_server()) {
       out <- shiny::tagList(
         conditionalPanel(
@@ -248,9 +249,10 @@ fieldbook_analysis <- function(input, output, session, values){
 
 
     fbInput <- reactive({
-    #req(input$fbaInput)
+    req(input$studs)
     out <- NULL
-    updateSelectInput(session, "fba_set_trt", choices = NULL)
+    #updateSelectInput(session, "fba_set_trt", choices = NULL)
+
     if (!is_server()) {
       if(input$fba_src_type == "Brapi") {
         out <- data_fdb()
@@ -269,7 +271,10 @@ fieldbook_analysis <- function(input, output, session, values){
              "Need a table.")
       )
       colnames(out) <- toupper(colnames(out))
+
     }
+
+
 
 
     out
@@ -339,14 +344,15 @@ fieldbook_analysis <- function(input, output, session, values){
       if(!is.null(bd)) {
         set_fb = updateSelectInput(session, "fbaInput", "Fieldbook", choices = sl)
       }
+
       #set_fb
     })
 
-    get_cn <- function() {
+    get_cn <- reactive({
       colnames(fbInput()) %>% toupper()
-    }
+    })
 
-    extract_params <- function() {
+    extract_params <- reactive({
       cn = get_cn()
       gti= which(stringr::str_detect(cn, "CODE|INSTN|GENOTYPE|GEN|GERMPLASMNAME|CIPNUMBER"))[1]
       bki= which(stringr::str_detect(cn, "BLOCK|BLK|BLOC" ))[1]
@@ -368,48 +374,76 @@ fieldbook_analysis <- function(input, output, session, values){
       tn = cn[tti]
       tn <- tn[!fcs %in% cn]
       list(tn = tno, tti = tti, gti = gti,bki = bki, rpi = rpi, pti = pti, ci = ci)
-    }
+    })
 
 
-    gather_params <- function(){
+    # gather_params <- reactive({
+    #   #req(input$fbaInput)
+    #   withProgress(message = "Getting trial info ...", {
+    #     #cn = colnames(fbInput()) %>% toupper()
+    #     # ep = extract_params(cn)
+    #     cn <- get_cn()
+    #     ep = extract_params()
+    #
+    #     shiny::updateSelectInput(session = session, inputId = "fba_set_gen", choices = cn, selected = cn[ep$gti])
+    #     shiny::updateSelectInput(session = session, inputId = "fba_set_blk", choices = c(NA, cn), selected = cn[ep$bki])
+    #     shiny::updateSelectInput(session = session, inputId = "fba_set_rep", choices = cn, selected = cn[ep$rpi])
+    #     shiny::updateSelectInput(session = session, inputId = "fba_set_plt", choices = cn, selected = cn[ep$pti])
+    #     shiny::updateSelectInput(session = session, inputId = "fba_set_trt", choices = ep$tn, selected = ep$tn[1], multiple = TRUE)
+    #
+    #
+    #     # out =
+    #     #   fluidRow(width = 12,
+    #     #            column(width = 3,
+    #     #                   selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[ep$gti]) ,
+    #     #                   selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[ep$bki]),
+    #     #                   selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[ep$pti]),
+    #     #                   selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[ep$rpi])
+    #     #            ),
+    #     #            column(width = 9,
+    #     #                   selectInput("fba_set_trt", "Traits", choices = ep$tn
+    #     #                               , selected = ep$tn[1]
+    #     #                               , multiple = TRUE)
+    #     #            )
+    #     #
+    #     #   )
+    #   })
+    # #out
+    # })
+
+
+    observe({
       #req(input$fbaInput)
-      withProgress(message = "Getting trial info ...", {
+      #gather_params()
+      #withProgress(message = "Getting trial info ...", {
         #cn = colnames(fbInput()) %>% toupper()
         # ep = extract_params(cn)
+        input$studs
         cn <- get_cn()
         ep = extract_params()
-        out =
-          fluidRow(width = 12,
-                   column(width = 3,
-                          selectInput("fba_set_gen", "Genotype", choices = cn, selected = cn[ep$gti]) ,
-                          selectInput("fba_set_blk", "Block", choices = c(NA, cn), cn[ep$bki]),
-                          selectInput("fba_set_plt", "Plot", choices = cn, selected = cn[ep$pti]),
-                          selectInput("fba_set_rep", "Replication", choices = cn, selected = cn[ep$rpi])
-                   ),
-                   column(width = 9,
-                          selectInput("fba_set_trt", "Traits", choices = ep$tn
-                                      , selected = ep$tn[1]
-                                      , multiple = TRUE)
-                   )
 
-          )
+        shiny::updateSelectInput(session = session, inputId = "fba_set_gen", choices = cn, selected = cn[ep$gti])
+        shiny::updateSelectInput(session = session, inputId = "fba_set_blk", choices = c(NA, cn), selected = cn[ep$bki])
+        shiny::updateSelectInput(session = session, inputId = "fba_set_rep", choices = cn, selected = cn[ep$rpi])
+        shiny::updateSelectInput(session = session, inputId = "fba_set_plt", choices = cn, selected = cn[ep$pti])
+        shiny::updateSelectInput(session = session, inputId = "fba_set_trt", choices = ep$tn, selected = ep$tn[1])
+
+
+      #})
       })
-    out
-    }
 
 
-
-    output$fbParams <- renderUI({
-      req(input$fba_src_type)
-      if( !is_server()) {
-
-        if( input$fba_src_type == "Local") {
-          req(input$fbaInput)
-          if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
-        }
-      }
-      gather_params()
-    })
+    # output$fbParams <- renderUI({
+    #   req(input$fba_src_type)
+    #   if( !is_server()) {
+    #
+    #     if( input$fba_src_type == "Local") {
+    #       req(input$fbaInput)
+    #       if(!stringr::str_detect(input$fbaInput, ".rda")) return(gather_params())
+    #     }
+    #   }
+    #   gather_params()
+    # })
 
 
 
@@ -774,68 +808,72 @@ output$phDens_output = renderPlot({
 
 #####################
 
+# observeEvent(fbInput(),
+#              gather_params()
+#              )
+#
+#
+# observeEvent(input$fbRepoDo, {
+#   output$fbRep <- shiny::renderUI({
+#     req(input$fba_set_trt)
+#     #print("step 1")
+#     #print("Hi")
+#     DF <- fbInput()
+#     trait = input$fba_set_trt
+#
+#     treat <- input$fba_set_gen #"germplasmName" #input$def_genotype
+#     #trait = input$fbCorrVars
+#     if(length(trait) < 1) return(NULL)
+#
+#     shiny::withProgress(message = 'Imputing missing values', {
+#       options(warn = -1)
+#       REP = input$fba_set_rep
+#       GEN = input$fba_set_gen
+#
+#       DF = DF[, c(treat, REP,  trait)]
+#
+#       DF[, treat] <- as.factor(DF[, treat])
+#
+#       # exclude the response variable and empty variable for RF imputation
+#       datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
+#       x <- DF[, datas]
+#       for(i in 1:ncol(x)){
+#         x[, i] <- as.numeric(x[, i])
+#       }
+#       y <- DF[, treat]
+#       if (any(is.na(x))){
+#         utils::capture.output(
+#           DF <- randomForest::rfImpute(x = x, y = y )
+#         )
+#       }
+#       names(DF)[1] <- treat
+#     })
+#     out = "no report"
+#     if(input$expType == "RCBD"){
+#       #pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+#       out = repo_ana("rcbd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
+#     }
+#     if(input$expType == "CRD"){
+#       #pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
+#       out = repo_ana("crd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
+#     }
+#     if(input$expType == "ABD"){
+#       #pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
+#       out = repo_ana("abd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
+#     }
+#     if(input$expType == "A01D"){
+#       # pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
+#       #                  data = DF, format = tolower(input$aovFormat))
+#       out = repo_ana("a01d", trait, geno = GEN, rep = REP, block = input$fba_block, k = input$k,
+#                data = DF, format = tolower(input$aovFormat))
+#
+#     }
+#   HTML("<a href='", out, "' target='_new'>Report</a>")
+#
+#   })
 
-observeEvent(input$fbRepoDo, {
-  output$fbRep <- shiny::renderUI({
-    req(input$fba_set_trt)
-    #print("step 1")
-    #print("Hi")
-    DF <- fbInput()
-    trait = input$fba_set_trt
 
-    treat <- input$fba_set_gen #"germplasmName" #input$def_genotype
-    #trait = input$fbCorrVars
-    if(length(trait) < 1) return(NULL)
-
-    shiny::withProgress(message = 'Imputing missing values', {
-      options(warn = -1)
-      REP = input$fba_set_rep
-      GEN = input$fba_set_gen
-
-      DF = DF[, c(treat, REP,  trait)]
-
-      DF[, treat] <- as.factor(DF[, treat])
-
-      # exclude the response variable and empty variable for RF imputation
-      datas <- names(DF)[!names(DF) %in% c(treat, "PED1")] # TODO replace "PED1" by a search
-      x <- DF[, datas]
-      for(i in 1:ncol(x)){
-        x[, i] <- as.numeric(x[, i])
-      }
-      y <- DF[, treat]
-      if (any(is.na(x))){
-        utils::capture.output(
-          DF <- randomForest::rfImpute(x = x, y = y )
-        )
-      }
-      names(DF)[1] <- treat
-    })
-    out = "no report"
-    if(input$expType == "RCBD"){
-      #pepa::repo.rcbd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("rcbd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
-    }
-    if(input$expType == "CRD"){
-      #pepa::repo.crd(trait, geno = "germplasmName",  data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("crd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
-    }
-    if(input$expType == "ABD"){
-      #pepa::repo.abd(trait, geno = "germplasmName", rep = "REP", data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("abd", trait, geno = GEN, rep = REP, data = DF, format = tolower(input$aovFormat))
-    }
-    if(input$expType == "A01D"){
-      # pepa::repo.a01d(trait, geno = "germplasmName", rep = "REP", block = input$block, k = input$k,
-      #                  data = DF, format = tolower(input$aovFormat))
-      out = repo_ana("a01d", trait, geno = GEN, rep = REP, block = input$fba_block, k = input$k,
-               data = DF, format = tolower(input$aovFormat))
-
-    }
-  HTML("<a href='", out, "' target='_new'>Report</a>")
-
-  })
-
-
-})
+#})
 
 }
 

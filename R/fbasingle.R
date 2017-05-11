@@ -7,22 +7,30 @@ visuals <- function(){
 
                   tabPanel("About",
                            HTML("Use this module to visually assess your data.</br>
-                                Switch to the tab \"Source\":</br>
+                                Switch to the tab \" Data Source\":</br><br/>
                                 in the online version this may take a bit as it directly activates the link to a remote database</br>
                                 via the BrAPI protocol.</br></br>
                                 The online backend server has a time-limit resulting in a message \"Disconnected from server\" after some time of inactivity. Just \"reload or refresh the page\".
                                 ")
                            ),
-                  tabPanel("Source data",
+                  tabPanel("Data Source",
                            fluidRow(
                              column(width = 3,
                                     shiny::uiOutput("ui_src_type"),
                                     shiny::uiOutput("ui_src_filter"),
                                     shiny::uiOutput("ui_src_fieldbook")
                              ),
-                             column(width = 9,
-                                    uiOutput("fbParams")
-                             )
+                             column(width = 3,
+                                    #uiOutput("fbParams")
+                                    shiny::selectInput("fba_set_gen", "Genotype", choices = NULL) ,
+                                    shiny::selectInput("fba_set_blk", "Block", choices = NULL),
+                                    shiny::selectInput("fba_set_plt", "Plot", choices= NULL),
+                                    shiny::selectInput("fba_set_rep", "Replication", choices = NULL)
+                             ),
+                             column(width = 5,
+                                    shiny::selectInput("fba_set_trt", "Traits", choices = NULL, multiple = TRUE)
+
+                                    )
                            )
 
                   ),
@@ -116,48 +124,7 @@ fbasingle_ui <- function(title="") {
 
 
   shinydashboard::tabItem(tabName = title,
-    # h2("Single Chart"),
-    # fluidRow(
-    #   column(width = 12,
-    #          shinydashboard::box(width = NULL, collapsible = TRUE,
-    #              title = "Data",
-    #              shinydashboard::tabBox("Details", width = 12,
-    #               tabPanel("About",
-    #                 HTML("Use this module to visually assess your data.</br>
-    #                      Switch to the tab \"Source\":</br>
-    #                      in the online version this may take a bit as it directly activates the link to a remote database</br>
-    #                      via the BrAPI protocol.</br></br>
-    #                      The online backend server has a time-limit resulting in a message \"Disconnected from server\" after some time of inactivity. Just \"reload or refresh the page\".
-    #                      ")
-    #               ),
-    #               tabPanel("Source data",
-    #                fluidRow(
-    #                  column(width = 3,
-    #                         shiny::uiOutput("ui_src_type")
-    #                         ),
-    #                  column(width = 3,
-    #                         shiny::uiOutput("ui_src_filter")
-    #                  ),
-    #                 column(width = 6,
-    #                        shiny::uiOutput("ui_src_fieldbook")
-    #                        )
-    #                ),
-    #                uiOutput("fbParams")
-    #
-    #              ),
-    #              tabPanel("Fieldbook",
-    #                       # conditionalPanel(
-    #                       #   condition = "input.fba_src_type != 'Brapi'",
-    #                         DT::dataTableOutput("hotFieldbook")
-    #                       #)
-    #
-    #              )
-    #
-    #          )
-    #   )
-    # )
-    # )
-    # ,
+    shinytoastr::useToastr(),
     visuals()
   )
 }
