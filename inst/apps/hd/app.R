@@ -7,7 +7,12 @@ library(withr)
 library(DT)
 
 
-ui <- dashboardPage(skin = "yellow",
+ui <- fluidPage(
+  shinytoastr::useToastr(),
+
+
+  dashboardPage(skin = "yellow",
+
 
       dashboardHeader(title = "HIDAP",
                     dropdownMenuOutput("notificationMenu")),
@@ -30,6 +35,7 @@ ui <- dashboardPage(skin = "yellow",
         )
 
       )
+  )
 )
 
 

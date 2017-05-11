@@ -124,7 +124,7 @@ fbasingle_ui <- function(title="") {
 
 
   shinydashboard::tabItem(tabName = title,
-    shinytoastr::useToastr(),
+
     visuals()
   )
 }

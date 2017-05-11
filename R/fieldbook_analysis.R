@@ -150,7 +150,8 @@ fieldbook_analysis <- function(input, output, session, values){
   })
 
   output$ui_src_fieldbook <- shiny::renderUI({
-    shinytoastr::toastr_info("This may take a while to auto-fill.", position = "top-center", progressBar = TRUE)
+    shinytoastr::toastr_info("This may take a while to auto-fill.",
+                             position = "top-center", progressBar = TRUE, timeOut = 10000)
     if (!is_server()) {
       out <- shiny::tagList(
         conditionalPanel(

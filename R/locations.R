@@ -231,6 +231,8 @@ locations <- function(input, output, session, values) {
   #                                         options = list(scrollX = TRUE))
 
   output$mapLocs <- leaflet::renderLeaflet({
+    shinytoastr::toastr_info("This may take a while to show..",
+                             position = "top-center", progressBar = TRUE, timeOut = 10000)
     #req(input$mapLocs_marker)
     pts <- map_dat_sel()
     validate(
