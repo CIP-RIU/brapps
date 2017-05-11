@@ -132,9 +132,21 @@ locations <- function(input, output, session, values) {
   map_dat <- reactive({
     #out <- NULL
     #out <- tryCatch(
+    #print(map_con())
     out <-  shiny::withProgress(message = "Loading", detail = "locations", {
         brapi::ba_locations(map_con(), pageSize = 1000)
       })
+
+    #print(class(out))
+
+    validate(
+      need(is.data.frame(out), "Need a location table."),
+      need("latitude" %in% names(out), "Need a column named latitude."),
+      need("longitude" %in% names(out), "Need a column named longitude."),
+      need("name" %in% names(out), "Need a column named name."),
+      need("altitude" %in% names(out), "Need a column named altitude.")
+    )
+    #print(class(out))
     # ,
     #   error = function(e) return(NULL)
     # )
@@ -219,6 +231,7 @@ locations <- function(input, output, session, values) {
   #                                         options = list(scrollX = TRUE))
 
   output$mapLocs <- leaflet::renderLeaflet({
+    #req(input$mapLocs_marker)
     pts <- map_dat_sel()
     validate(
       need(is.data.frame(pts), "Need a location table."),
@@ -301,7 +314,8 @@ locations <- function(input, output, session, values) {
   output$siteInfo <- renderUI({
     if(input$ui_map_track != "locations") return(NULL)
     out = msg_no_loc
-    rec = mrks()[1, ]
+    mrks <- mrks()
+    rec = mrks[1, ]
     if (nrow(rec) == 1) {
       out = rec2info(rec)
     }
@@ -309,13 +323,27 @@ locations <- function(input, output, session, values) {
     HTML(out)
   })
 
+  get_geo_mark <- function() {
+    req(input$mapLocs_marker_click)
+    click <- input$mapLocs_marker_click
+    if (is.null(click))
+      return(NULL)
+    # leaflet::clearMarkers(input$mapLocs)
+    #
+    # leaflet::addMarkers(input$mapLocs,lat =   click$lat, lng= click$lng, icon = greenLeafIcon)
+
+    locs = map_dat() #  get_geo_locs()
+
+    locs[locs$latitude == click$lat & locs$longitude == click$lng,]
+  }
 
   output$chart_env <- renderPlot({
     if (input$ui_map_track != "locations") return(NULL)
     chart_envelope(map_dat())
+    mrk <- get_geo_mark()
     if (length(mrks()) > 0) {
-      graphics::points(x = mrks()$annualMeanTemperature,
-                       y = mrks()$annualTotalRainfall,
+      graphics::points(x = mrk$annualMeanTemperature,
+                       y = mrk$annualTotalRainfall,
                        col = "blue",
                        bg = "blue",
                        type = "p",
@@ -380,18 +408,7 @@ locations <- function(input, output, session, values) {
   # })
   #
   #
-  # get_geo_mark <- function() {
-  #   click <- input$mapLocs_marker_click
-  #   if (is.null(click))
-  #     return(NULL)
-  #   # leaflet::clearMarkers(input$mapLocs)
-  #   #
-  #   # leaflet::addMarkers(input$mapLocs,lat =   click$lat, lng= click$lng, icon = greenLeafIcon)
-  #
-  #   locs = dat() #  get_geo_locs()
-  #
-  #   locs[locs$latitude == click$lat & locs$longitude == click$lng,]
-  # }
+
 
   # get_all_studies <- function(){
   #   fp = file.path(get_base_data(atype = "fieldbook"), "fieldbooks.rda")
