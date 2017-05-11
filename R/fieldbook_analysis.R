@@ -882,12 +882,14 @@ report_path <- system.file(file.path("apps", "hd", "reports", report_name), pack
 
 output$fbRepo <- downloadHandler(
   filename = function() {
-    paste('my-report', sep = '.', switch(
-      input$expType, PDF = 'pdf', HTML = 'html', Word = 'docx'
+    fn <- paste('my-report', sep = '.', switch(
+      input$aovFormat, PDF = 'pdf', HTML = 'html', Word = 'docx'
     ))
+    #print(fn)
+    fn
   },
 
-  content = function(file) {
+  content = function(filename) {
     src <- normalizePath(report_path)
 
     # temporarily switch to the temp dir, in case you do not have write
@@ -897,10 +899,11 @@ output$fbRepo <- downloadHandler(
     file.copy(src, report_name, overwrite = TRUE)
 
     out <- render(report_name, switch(
-      input$expType,
+      input$aovFormat,
       PDF = pdf_document(), HTML = html_document(), Word = word_document()
     ))
-    file.rename(out, file)
+    #print(out)
+    file.rename(out, filename)
   }
 )
 
