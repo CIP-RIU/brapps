@@ -85,20 +85,18 @@ visuals <- function(){
                                         c('PDF', 'HTML', 'Word'),
                                         inline = TRUE),
                            radioButtons("expType", "Experiment type",
-                                        c("RCBD", "ABD", "CRD"
-                                          #, "A01D"
+                                        c("RCBD", "ABD", "CRD", "A01D"
+
                                           ), inline = TRUE)
                            ,
-                           # conditionalPanel("input.expType == 'A01D'",
-                           #                  selectInput("block", "BLOCK", c("BLOC", "BLOCK")),
-                           #                  numericInput("k", "k", 2, 2, 5, step = 1)
-                           # ),
 
-                           #actionButton("fbRepoDo", "Create report!"),
-                           HTML("<center>"),
-                           #uiOutput("fbRep"),
-                           downloadButton("fbRepo", "Download Report!"),
-                           HTML("</center>")
+                           conditionalPanel(
+                             condition = "input.expType == 'A01D'",
+
+                             shiny::numericInput('fba_src_k', 'Select Block Size',   value = 2, min = 2, max = 100)
+                           ),
+
+                           downloadButton("fbRepo", "Download Report!")
 
                   )
 

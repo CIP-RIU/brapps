@@ -877,34 +877,61 @@ output$phDens_output = renderPlot({
 
 #})
 
-report_name <- "report.Rmd"
-report_path <- system.file(file.path("apps", "hd", "reports", report_name), package = "brapps")
+#report_type <- "report.Rmd"
+report_path <- system.file(file.path("rmd"), package = "pepa")
 
 output$fbRepo <- downloadHandler(
   filename = function() {
-    fn <- paste('my-report', sep = '.', switch(
+    fn <- paste0('report_', input$studs, "_", input$expType, ".", switch(
       input$aovFormat, PDF = 'pdf', HTML = 'html', Word = 'docx'
     ))
-    #print(fn)
     fn
   },
 
-  content = function(filename) {
-    src <- normalizePath(report_path)
+  content = function(file) {
+  tr({
+    report_name <- switch(
+      input$expType, RCBD = "rcbd.Rmd", ABD = "abd.Rmd", CRD = "crd", A01D = "a01d.Rmd"
+    )
+
+    src <- list.files(report_path, full.names = TRUE)
 
     # temporarily switch to the temp dir, in case you do not have write
     # permission to the current working directory
     owd <- setwd(tempdir())
     on.exit(setwd(owd))
-    file.copy(src, report_name, overwrite = TRUE)
+    file.copy(src, basename(src), overwrite = TRUE)
 
-    out <- render(report_name, switch(
-      input$aovFormat,
-      PDF = pdf_document(), HTML = html_document(), Word = word_document()
-    ))
-    #print(out)
-    file.rename(out, filename)
+    k = ifelse(!is.null(input$fba_src_k), input$fba_src_k, 0)
+
+    df <- fbInput()[, c(input$fba_set_gen, input$fba_set_rep, input$fba_set_trt)]
+    names(df) <- toupper(names(df))
+
+    dots <- lapply(c(input$fba_set_gen, input$fba_set_rep), as.symbol)
+    df <- df %>% dplyr::group_by_(.dots = dots) %>% dplyr::summarise_each(funs(mean)) %>% as.data.frame()
+
+    fba_params = list(
+                  traits = input$fba_set_trt,
+                  geno = input$fba_set_gen,
+                  rep = input$fba_set_rep,
+                  data = df,
+                  maxp = 0.10,
+                  title = "Automated report for",
+                  subtitle = NULL,
+                  author = "International Potato Center (CIP)")
+
+    out <- render(report_name,
+                  switch(
+                    input$aovFormat,
+                    PDF = pdf_document(), HTML = html_document(), Word = word_document()
+                  ),
+                  params = fba_params
+    )
+
+    file.rename(out, file)
+
   }
+  })
 )
 
 
