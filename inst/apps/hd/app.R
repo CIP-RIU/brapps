@@ -5,6 +5,8 @@ library(qtlcharts)
 library(dplyr)
 library(withr)
 library(DT)
+library(st4gi)
+library(pepa)
 
 
 ui <- fluidPage(
