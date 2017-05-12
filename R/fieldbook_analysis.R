@@ -896,7 +896,7 @@ output$fbRepo <- downloadHandler(
   content = function(file) {
   withProgress(message = "Report creation in progress", detail = "This may take a while ...", value = 0, {
 
-  #try({
+  tryCatch({
     report_name <- switch(
       input$expType, RCBD = "rcbd.Rmd", ABD = "abd.Rmd", CRD = "crd", A01D = "a01d.Rmd"
     )
@@ -968,26 +968,27 @@ output$fbRepo <- downloadHandler(
         author = "International Potato Center (CIP)")
     )
 
-    print(fba_params)
-
-    print(report_name)
+    # print(fba_params)
+    #
+    # print(report_name)
 
     out <- render(report_name,
                   switch(
                     input$aovFormat,
                     PDF = pdf_document(), HTML = html_document(), Word = word_document()
                   ),
-                  params = fba_params
+                  params = fba_params,
+                  envir = new.env(parent = globalenv())
     )
 
 
-    print(out)
-    print(file)
+    # print(out)
+    # print(file)
 
     res <- file.rename(out, file)
-    print(res)
+    #print(res)
     res
-  #})
+  })
   }) # progress
   }
 )
