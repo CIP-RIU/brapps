@@ -78,25 +78,11 @@ visuals <- function(){
                   ,
 
                   tabPanel(title = "Report",
+                           #uiOutput("aovVarsUI"),
+                           HTML("Select the traits and other parameters on the tab data source."),
 
-                           uiOutput("aovVarsUI"),
+                           uiOutput("rep_frmt")
 
-                           radioButtons("aovFormat","Report format",
-                                        c('PDF', 'HTML', 'Word'),
-                                        inline = TRUE),
-                           radioButtons("expType", "Experiment type",
-                                        c("RCBD", "ABD", "CRD", "A01D"
-
-                                          ), inline = TRUE)
-                           ,
-
-                           conditionalPanel(
-                             condition = "input.expType == 'A01D'",
-
-                             shiny::numericInput('fba_src_k', 'Select Block Size',   value = 2, min = 2, max = 100)
-                           ),
-
-                           downloadButton("fbRepo", "Download Report!")
 
                   )
 

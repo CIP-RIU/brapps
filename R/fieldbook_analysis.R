@@ -880,16 +880,23 @@ output$phDens_output = renderPlot({
 #report_type <- "report.Rmd"
 report_path <- system.file(file.path("rmd"), package = "pepa")
 
+report_fn <- reactive({
+  paste0('report_', unique(fbInput()$STUDYNAME), "_", input$expType, "_", Sys.time(), "." , switch(
+    input$aovFormat, PDF = 'pdf', HTML = 'html', Word = 'docx'))
+  })
+
 output$fbRepo <- downloadHandler(
   filename = function() {
-    fn <- paste0('report_', input$studs, "_", input$expType, ".", switch(
-      input$aovFormat, PDF = 'pdf', HTML = 'html', Word = 'docx'
-    ))
-    fn
+    # fn <- paste0('report_', unique(fbInput()$STUDYNAME), "_", input$expType, "_", Sys.time(), "." , switch(
+    #   input$aovFormat, PDF = 'pdf', HTML = 'html', Word = 'docx'
+    # ))
+    report_fn()
   },
 
   content = function(file) {
-  tr({
+  withProgress(message = "Report creation in progress", detail = "This may take a while ...", value = 0, {
+
+  #try({
     report_name <- switch(
       input$expType, RCBD = "rcbd.Rmd", ABD = "abd.Rmd", CRD = "crd", A01D = "a01d.Rmd"
     )
@@ -900,6 +907,8 @@ output$fbRepo <- downloadHandler(
     # permission to the current working directory
     owd <- setwd(tempdir())
     on.exit(setwd(owd))
+
+    #unlink(report_name)
     file.copy(src, basename(src), overwrite = TRUE)
 
     k = ifelse(!is.null(input$fba_src_k), input$fba_src_k, 0)
@@ -910,15 +919,58 @@ output$fbRepo <- downloadHandler(
     dots <- lapply(c(input$fba_set_gen, input$fba_set_rep), as.symbol)
     df <- df %>% dplyr::group_by_(.dots = dots) %>% dplyr::summarise_each(funs(mean)) %>% as.data.frame()
 
-    fba_params = list(
+    ttl <- paste0("Automated report for study: ", unique(fbInput()$STUDYNAME), " - ",
+                switch(input$expType,
+                       RCBD = "Randomized Complete Block Design (RCBD)",
+                       ABD = "Augmented Block Design (ABD)",
+                       CRD = "Completely Randomized Design (CRD)",
+                       A01D = "Alpha Design (A01D)")
+    )
+    #print(ttl)
+
+    fba_params = switch(input$expType,
+      RCBD = list(
                   traits = input$fba_set_trt,
                   geno = input$fba_set_gen,
                   rep = input$fba_set_rep,
                   data = df,
                   maxp = 0.10,
-                  title = "Automated report for",
+                  title = ttl,
                   subtitle = NULL,
-                  author = "International Potato Center (CIP)")
+                  author = "International Potato Center (CIP)"),
+      ABD = list(
+        traits = input$fba_set_trt,
+        geno = input$fba_set_gen,
+        rep = input$fba_set_rep,
+        data = df,
+
+        title = ttl,
+        subtitle = NULL,
+        author = "International Potato Center (CIP)"),
+      CRD = list(
+        traits = input$fba_set_trt,
+        geno = input$fba_set_gen,
+        data = df,
+        maxp = 0.10,
+        title = ttl,
+        subtitle = NULL,
+        author = "International Potato Center (CIP)"),
+      A01D = list(
+        traits = input$fba_set_trt,
+        geno = input$fba_set_gen,
+        rep = input$fba_set_rep,
+        block = input$fba_set_blk,
+        k = k,
+        data = df,
+        maxp = 0.10,
+        title = ttl,
+        subtitle = NULL,
+        author = "International Potato Center (CIP)")
+    )
+
+    print(fba_params)
+
+    print(report_name)
 
     out <- render(report_name,
                   switch(
@@ -928,11 +980,50 @@ output$fbRepo <- downloadHandler(
                   params = fba_params
     )
 
-    file.rename(out, file)
 
+    print(out)
+    print(file)
+
+    res <- file.rename(out, file)
+    print(res)
+    res
+  #})
+  }) # progress
   }
-  })
 )
+
+
+output$rep_frmt <- shiny::renderUI({
+req(input$fba_set_trt)
+validate(
+  need(length(input$fba_set_trt) > 0,  "Need at least one seleceted trait for analysis")
+)
+
+
+out <- tagList(
+
+  HTML("Revise your selection on the Data source tab."),
+
+  radioButtons("aovFormat","Report format",
+               c('PDF', 'HTML', 'Word'),
+               inline = TRUE),
+  radioButtons("expType", "Experiment type",
+               c("RCBD", "ABD", "CRD", "A01D"
+
+               ), inline = TRUE),
+
+
+  conditionalPanel(
+    condition = "input.expType == 'A01D'",
+
+    shiny::numericInput('fba_src_k', 'Select Block Size',   value = 2, min = 2, max = 100)
+  ),
+
+  downloadButton("fbRepo", "Download Report!")
+)
+  return(out)
+
+})
 
 
 }

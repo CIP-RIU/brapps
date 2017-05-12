@@ -11,8 +11,8 @@ Imports:
     shinydashboard, progress,
     DT, randomForest, htmlTable, corrr, shinytoastr, rmarkdown,
     stringr, withr, shinyFiles, fbglobal, fbmaterials, brapi, htmltools, leaflet,
-    dplyr
-Remotes:  c5sire/shinyFiles, c5sire/fbglobal, c5sire/fbmaterials, c5sire/brapi
+    dplyr, st4gi, pepa
+Remotes:  c5sire/shinyFiles, c5sire/fbglobal, c5sire/fbmaterials, c5sire/brapi, reyzaguirre/st4gi, reyzaguirre/pepa
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
