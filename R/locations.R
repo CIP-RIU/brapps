@@ -95,7 +95,8 @@ locations <- function(input, output, session, values) {
     ndb <- ndb[stringr::str_detect(ndb, "base")]
 
 
-    out <- shiny::selectInput("map_bdb", "BrAPI database", ndb)
+    out <- shiny::selectInput("map_bdb", "BrAPI database", ndb,
+                              selected = "sweetpotatobase")
 
     return(out)
   })

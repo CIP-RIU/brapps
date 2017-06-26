@@ -16,7 +16,7 @@ ui <- fluidPage(
   dashboardPage(skin = "yellow",
 
 
-      dashboardHeader(title = "HIDAP",
+      dashboardHeader(title = "HIDAP prototype",
                     dropdownMenuOutput("notificationMenu")),
       dashboardSidebar(
         sidebarMenu(

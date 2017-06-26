@@ -3,6 +3,7 @@ Title: Functions for Demoing Breeding API
 Version: 0.1.0
 Authors@R: person("Reinhard", "Simon", email = "rsimon64@gmail.com",
   role = c("aut", "cre"))
+Maintainer: Ivan Perez <i.perez@cgiar.org>  
 Description: Functions for Demoing Breeding API.
 Depends:
     R (>= 3.2.4)
